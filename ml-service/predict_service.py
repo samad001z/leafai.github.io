@@ -1,5 +1,6 @@
 import json
 import os
+import platform
 from typing import Any, Dict, Optional
 
 import numpy as np
@@ -17,6 +18,7 @@ IMAGE_SIZE = (224, 224)
 app = Flask(__name__)
 model: Optional[tf.keras.Model] = None
 labels: Dict[str, Any] = {}
+model_load_error: str = ""
 
 
 def load_labels(path: str) -> Dict[str, Any]:
@@ -36,17 +38,32 @@ def load_labels(path: str) -> Dict[str, Any]:
 
 
 def load_model(path: str) -> Optional[tf.keras.Model]:
+    global model_load_error
+
     if not os.path.exists(path):
-        print(f"[WARN] Model not found at {path}. /predict will return 503 until model is added.")
+        model_load_error = f"Model file not found at {path}"
+        print(f"[WARN] {model_load_error}. /predict will return 503 until model is added.")
         return None
 
     try:
         loaded = tf.keras.models.load_model(path)
+        model_load_error = ""
         print(f"[INFO] Loaded model from {path}")
         return loaded
     except Exception as exc:
-        print(f"[WARN] Failed to load model: {exc}")
-        return None
+        primary_error = str(exc)
+        print(f"[WARN] Primary model load failed: {primary_error}")
+
+        # Fallback load ignores compile state and helps across minor Keras metadata mismatches.
+        try:
+            loaded = tf.keras.models.load_model(path, compile=False)
+            model_load_error = ""
+            print(f"[INFO] Loaded model with compile=False from {path}")
+            return loaded
+        except Exception as fallback_exc:
+            model_load_error = f"Primary: {primary_error} | Fallback: {fallback_exc}"
+            print(f"[WARN] Failed to load model (including fallback): {model_load_error}")
+            return None
 
 
 def preprocess_image(file_storage) -> np.ndarray:
@@ -103,8 +120,12 @@ def health():
         {
             "status": "ok",
             "modelLoaded": model is not None,
+            "modelFileExists": os.path.exists(MODEL_PATH),
+            "modelLoadError": model_load_error,
             "modelPath": MODEL_PATH,
             "labelsPath": LABELS_PATH,
+            "pythonVersion": platform.python_version(),
+            "tensorflowVersion": tf.__version__,
         }
     )
 
@@ -112,4 +133,5 @@ def health():
 if __name__ == "__main__":
     labels = load_labels(LABELS_PATH)
     model = load_model(MODEL_PATH)
-    app.run(host="0.0.0.0", port=5001, debug=False)
+    port = int(os.getenv("PORT", "5001"))
+    app.run(host="0.0.0.0", port=port, debug=False)
