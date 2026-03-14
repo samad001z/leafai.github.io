@@ -1,0 +1,82 @@
+/* Global Reset and Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #FFF8DC;
+  color: #333;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* CSS Variables - Farmer-Friendly Color Palette */
+:root {
+  --primary-color: #228B22;       /* Forest Green */
+  --primary-dark: #006400;        /* Dark Green */
+  --primary-light: #90EE90;       /* Light Green */
+  --secondary-color: #8B4513;     /* Earth Brown */
+  --accent-color: #FFD700;        /* Sunflower Yellow */
+  --background-color: #FFF8DC;    /* Cream */
+  --white: #FFFFFF;
+  --text-dark: #2C3E50;
+  --text-light: #666666;
+  --error-color: #E74C3C;
+  --success-color: #27AE60;
+  --border-radius: 12px;
+  --border-radius-lg: 16px;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
+  --min-touch-target: 48px;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+h1 {
+  font-size: 2rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+}
+
+h3 {
+  font-size: 1.25rem;
+}
+
+p {
+  font-size: 1rem;
+  color: var(--text-light);
+}
+
+/* Utility Classes */
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px;
+  min-height: 100vh;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.mt-1 { margin-top: 8px; }
+.mt-2 { margin-top: 16px; }
+.mt-3 { margin-top: 24px; }
+.mt-4 { margin-top: 32px; }
+.mb-1 { margin-bottom: 8px; }
+.mb-2 { margin-bottom: 16px; }
+.mb-3 { margin-bottom: 24px; }
+.mb-4 { margin-bottom: 32px; }
