@@ -68,12 +68,15 @@ Deploy as three services:
 
 3. ML web service
    - Root directory: ml-service
+    - Python version: 3.11.9
    - Start command: python predict_service.py
+    - If using Render dashboard environment variables, set: PYTHON_VERSION=3.11.9
    - Ensure these files are deployed:
      - predict_service.py
      - requirements.txt
      - labels.json
      - plant_disease_model.h5
+       - runtime.txt
 
 ## Vercel + Render split
 
