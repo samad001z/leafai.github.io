@@ -2,6 +2,7 @@
 node_modules/
 frontend/node_modules/
 backend/node_modules/
+ml-service/node_modules/
 
 # Environment files
 .env
@@ -9,10 +10,16 @@ backend/node_modules/
 .env.development.local
 .env.test.local
 .env.production.local
+.venv/
+venv/
+ml-service/.venv/
 
 # Build outputs
 frontend/build/
 dist/
+__pycache__/
+**/__pycache__/
+*.pyc
 
 # Uploads (user uploaded images)
 backend/uploads/*
@@ -36,3 +43,8 @@ coverage/
 # Misc
 *.log
 .cache
+
+# ML artifacts and datasets
+ml-service/dataset/
+dataset/
+*.ipynb_checkpoints
