@@ -1,116 +1,194 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LanguageSelector, InfoModal } from '../components/Common';
+import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle2, Leaf, ScanLine, ShieldCheck } from 'lucide-react';
+import { Container } from '../components/Common';
+import { useLanguage } from '../i18n/LanguageContext';
 import './HomePage.css';
 
-function HomePage({ user, onLogout }) {
-  const navigate = useNavigate();
-  const [showInfo, setShowInfo] = useState(false);
+// Sample data for scan history
+const SAMPLE_SCANS = [
+  { id: 1, date: '2026-03-14', plant: 'Tomato', disease: 'Early Blight', confidence: 92, status: 'Severe' },
+  { id: 2, date: '2026-03-13', plant: 'Lettuce', disease: 'Healthy', confidence: 99, status: 'Healthy' },
+  { id: 3, date: '2026-03-12', plant: 'Corn', disease: 'Leaf Spot', confidence: 76, status: 'Mild' },
+  { id: 4, date: '2026-03-11', plant: 'Carrot', disease: 'Healthy', confidence: 98, status: 'Healthy' },
+  { id: 5, date: '2026-03-10', plant: 'Pepper', disease: 'Powdery Mildew', confidence: 84, status: 'Mild' },
+  { id: 6, date: '2026-03-09', plant: 'Spinach', disease: 'Downy Mildew', confidence: 88, status: 'Severe' },
+];
 
-  const handleScanPlant = () => {
-    navigate('/scan');
-  };
+function HomePage() {
+  const navigate = useNavigate();
+  const { t } = useLanguage();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const currentHour = new Date().getHours();
+  const greeting = currentHour < 12
+    ? t('dash_greeting_morning')
+    : currentHour < 17
+      ? t('dash_greeting_afternoon')
+      : t('dash_greeting_evening');
+
+  const paginatedScans = SAMPLE_SCANS.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+  const totalPages = Math.ceil(SAMPLE_SCANS.length / itemsPerPage);
+
+  const kpiCards = [
+    { label: t('card_scans'), value: '48', icon: ScanLine },
+    { label: t('card_healthy'), value: '31', icon: CheckCircle2 },
+    { label: t('card_diseased'), value: '9', icon: AlertCircle },
+    { label: t('card_alerts'), value: '22', icon: ShieldCheck },
+  ];
+
+  const featureCards = [
+    {
+      title: t('home_card_scan_title'),
+      description: t('home_card_scan_desc'),
+      action: () => navigate('/scan'),
+      actionLabel: t('home_card_scan_action'),
+    },
+    {
+      title: t('home_card_alert_title'),
+      description: t('home_card_alert_desc'),
+      action: () => navigate('/alerts'),
+      actionLabel: t('home_card_alert_action'),
+    },
+    {
+      title: t('home_card_history_title'),
+      description: t('home_card_history_desc'),
+      action: () => navigate('/history'),
+      actionLabel: t('home_card_history_action'),
+    },
+    {
+      title: t('home_card_settings_title'),
+      description: t('home_card_settings_desc'),
+      action: () => navigate('/settings'),
+      actionLabel: t('home_card_settings_action'),
+    },
+  ];
 
   return (
     <div className="home-page">
-      <LanguageSelector />
-      
-      {/* Header */}
-      <div className="home-header">
-        <div className="header-top">
-          <div className="user-greeting">
-            <span className="greeting-icon">👋</span>
+      {/* Main Workspace */}
+      <main className="dashboard-layout">
+        <Container>
+          {/* Welcome Section */}
+          <div className="dashboard-welcome">
             <div>
-              <p className="greeting-text">Welcome back,</p>
-              <h2 className="user-name">{user?.name || 'Farmer'}</h2>
+              <h1 className="font-display">{greeting} 🌱</h1>
+              <p className="text-secondary">{t('dash_subtitle')}</p>
             </div>
-          </div>
-          <div className="header-actions">
-            <button 
-              className="info-btn"
-              onClick={() => setShowInfo(true)}
-              aria-label="Information"
+            <button
+              type="button"
+              className="dashboard-scan-btn"
+              onClick={() => navigate('/scan')}
             >
-              i
-            </button>
-            <button 
-              className="logout-btn"
-              onClick={onLogout}
-              aria-label="Logout"
-            >
-              🚪
+              {t('dash_scan_btn')} →
             </button>
           </div>
-        </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="home-container">
-        {/* Hero Section */}
-        <div className="hero-section">
-          <div className="hero-illustration">
-            <span className="hero-plant">🌿</span>
-            <span className="hero-sparkle">✨</span>
-          </div>
-          <h1>Protect Your Crops</h1>
-          <p>Scan your plants to detect diseases early and get expert recommendations</p>
-        </div>
+          <section className="home-kpi-grid" aria-label={t('nav_dashboard')}>
+            {kpiCards.map((card) => {
+              const Icon = card.icon;
+              return (
+                <article key={card.label} className="home-kpi-card">
+                  <div className="home-kpi-icon-wrap">
+                    <Icon size={18} aria-hidden="true" />
+                  </div>
+                  <p className="home-kpi-label">{card.label}</p>
+                  <p className="home-kpi-value">{card.value}</p>
+                </article>
+              );
+            })}
+          </section>
 
-        {/* Scan Button */}
-        <div className="scan-section">
-          <button 
-            className="scan-plant-btn"
-            onClick={handleScanPlant}
-          >
-            <span className="scan-icon">📸</span>
-            <span className="scan-text">Scan Plant</span>
-            <span className="scan-arrow">→</span>
-          </button>
-        </div>
+          <section className="home-feature-grid" aria-label={t('dash_scan_btn')}>
+            {featureCards.map((card) => (
+              <article key={card.title} className="home-feature-card">
+                <h3>{card.title}</h3>
+                <p>{card.description}</p>
+                <button type="button" className="home-feature-action" onClick={card.action}>
+                  {card.actionLabel}
+                </button>
+              </article>
+            ))}
+          </section>
 
-        {/* Quick Stats */}
-        <div className="stats-section">
-          <h3>How it works</h3>
-          <div className="steps-grid">
-            <div className="step-item">
-              <span className="step-number">1</span>
-              <span className="step-icon">📱</span>
-              <p>Take Photo</p>
+          {/* Recent Scans Table */}
+          <section className="scans-section">
+            <div className="scans-header">
+              <h3 className="scans-title">{t('recent_scans')}</h3>
             </div>
-            <div className="step-item">
-              <span className="step-number">2</span>
-              <span className="step-icon">🔍</span>
-              <p>AI Analyzes</p>
-            </div>
-            <div className="step-item">
-              <span className="step-number">3</span>
-              <span className="step-icon">📋</span>
-              <p>Get Results</p>
-            </div>
-            <div className="step-item">
-              <span className="step-number">4</span>
-              <span className="step-icon">💡</span>
-              <p>Take Action</p>
-            </div>
-          </div>
-        </div>
 
-        {/* Tips Section */}
-        <div className="tips-section">
-          <h3>📌 Tips for Best Results</h3>
-          <ul className="tips-list">
-            <li>Take clear, well-lit photos of affected leaves</li>
-            <li>Get close to capture details of the problem</li>
-            <li>Include multiple leaves if possible</li>
-            <li>Avoid blurry or dark images</li>
-          </ul>
-        </div>
-      </div>
+            <div className="scans-table-wrapper">
+              <table className="scans-table">
+                <thead>
+                  <tr>
+                    <th>{t('col_date')}</th>
+                    <th>{t('col_plant')}</th>
+                    <th>{t('col_disease')}</th>
+                    <th>{t('col_confidence')}</th>
+                    <th>{t('col_status')}</th>
+                    <th>{t('col_action')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedScans.map((scan) => (
+                    <tr key={scan.id} className="scan-row">
+                      <td>{scan.date}</td>
+                      <td>
+                        <span className="plant-icon"><Leaf size={16} /></span>
+                        {t(scan.plant)}
+                      </td>
+                      <td>{t(scan.disease)}</td>
+                      <td>
+                        <span className="confidence-badge">{scan.confidence}%</span>
+                      </td>
+                      <td>
+                        <span className={`status-badge status-${scan.status.toLowerCase()}`}>
+                          {scan.status === 'Healthy' ? t('status_healthy') : scan.status === 'Mild' ? t('status_mild') : t('status_severe')}
+                        </span>
+                      </td>
+                      <td>
+                        <button className="action-btn" onClick={() => navigate(`/results/${scan.id}`)}>
+                          {t('action_view')}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-      {/* Info Modal */}
-      <InfoModal isOpen={showInfo} onClose={() => setShowInfo(false)} />
+            {/* Pagination */}
+            <div className="pagination">
+              <button
+                className="pagination-btn"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(currentPage - 1)}
+              >
+                <ArrowLeft size={16} />
+                {t('pagination_previous')}
+              </button>
+              <span className="page-info">
+                {t('pagination_page')} {currentPage} {t('pagination_of')} {totalPages}
+              </span>
+              <button
+                className="pagination-btn"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(currentPage + 1)}
+              >
+                {t('pagination_next')}
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          </section>
+        </Container>
+      </main>
     </div>
   );
 }
 
 export default HomePage;
+

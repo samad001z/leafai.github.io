@@ -1,75 +1,85 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
-import SignUpPage from './pages/SignUpPage';
-import SignInPage from './pages/SignInPage';
 import HomePage from './pages/HomePage';
 import ScannerPage from './pages/ScannerPage';
 import ResultPage from './pages/ResultPage';
+import HistoryPage from './pages/HistoryPage';
+import AlertsPage from './pages/AlertsPage';
+import SettingsPage from './pages/SettingsPage';
+import ProfilePage from './pages/ProfilePage';
+import Navigation from './components/Navigation/Navigation';
+import { LanguageSwitcher } from './components/Common';
 import './styles/App.css';
 
-function App() {
-  const [user, setUser] = useState(null);
+function AppContent() {
   const [scanResult, setScanResult] = useState(null);
+  const location = useLocation();
 
-  const handleLogin = (userData) => {
-    setUser(userData);
-  };
-
-  const handleLogout = () => {
-    setUser(null);
-    setScanResult(null);
-  };
+  // Keep landing page clean; show app navigation on feature pages.
+  const showNavigation = location.pathname !== '/';
 
   const handleScanComplete = (result) => {
     setScanResult(result);
   };
 
   return (
-    <Router>
-      <div className="app">
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route 
-            path="/signup" 
-            element={<SignUpPage onLogin={handleLogin} />} 
-          />
-          <Route 
-            path="/signin" 
-            element={<SignInPage onLogin={handleLogin} />} 
-          />
-          <Route 
-            path="/home" 
-            element={
-              user ? (
-                <HomePage user={user} onLogout={handleLogout} />
-              ) : (
-                <Navigate to="/signin" replace />
-              )
-            } 
-          />
-          <Route 
-            path="/scan" 
-            element={
-              user ? (
-                <ScannerPage onScanComplete={handleScanComplete} />
-              ) : (
-                <Navigate to="/signin" replace />
-              )
-            } 
-          />
-          <Route 
-            path="/result" 
-            element={
-              user && scanResult ? (
-                <ResultPage result={scanResult} />
-              ) : (
-                <Navigate to="/home" replace />
-              )
-            } 
-          />
-        </Routes>
-      </div>
+    <div className="app">
+      {showNavigation && <Navigation />}
+      {showNavigation && <LanguageSwitcher fixed />}
+      <main className={`app-main ${showNavigation ? 'app-main-shell' : 'app-main-public'}`}>
+        <div className={showNavigation ? 'app-content-max' : 'app-content-public'}>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route 
+              path="/home" 
+              element={<HomePage />} 
+            />
+            <Route
+              path="/dashboard"
+              element={<HomePage />}
+            />
+            <Route 
+              path="/scan" 
+              element={<ScannerPage onScanComplete={handleScanComplete} />} 
+            />
+            <Route 
+              path="/result" 
+              element={<ResultPage result={scanResult} />} 
+            />
+            <Route 
+              path="/history" 
+              element={<HistoryPage />} 
+            />
+            <Route 
+              path="/alerts" 
+              element={<AlertsPage />} 
+            />
+            <Route 
+              path="/settings" 
+              element={<SettingsPage />} 
+            />
+            <Route 
+              path="/profile" 
+              element={<ProfilePage />} 
+            />
+            <Route path="*" element={<Navigate to="/home" replace />} />
+          </Routes>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <Router
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
+      <AppContent />
     </Router>
   );
 }

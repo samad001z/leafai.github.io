@@ -1,0 +1,16 @@
+.alerts-page {
+  min-height: 100vh;
+  background: var(--bg-base);
+}
+
+.alerts-content {
+  padding: 2rem 0;
+}
+
+.alerts-content h1 {
+  color: var(--text-primary);
+}
+
+.alerts-content p {
+  color: var(--text-secondary);
+}

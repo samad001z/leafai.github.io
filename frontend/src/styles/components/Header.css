@@ -1,0 +1,109 @@
+/* Header Component Styles */
+
+.header {
+  background: linear-gradient(135deg, var(--color-forest-dark) 0%, var(--color-forest-base) 100%);
+  color: var(--color-cream);
+  padding: var(--spacing-lg) 0;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-dropdown);
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/><feColorMatrix in="noise" type="saturate" values="0.3"/></filter><rect width="100" height="100" fill="%230f3d2e" filter="url(%23noise)"/></svg>');
+  background-size: 100px 100px;
+  background-attachment: fixed;
+}
+
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2xl);
+}
+
+.header-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-xs);
+  cursor: pointer;
+  transition: transform var(--transition-base);
+}
+
+.header-brand:hover {
+  transform: translateY(-2px);
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  font-size: 1.75rem;
+  font-weight: 800;
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+.logo-icon {
+  font-size: 2rem;
+  animation: float 6s ease-in-out infinite;
+}
+
+.logo-text {
+  background: linear-gradient(135deg, var(--color-sage) 0%, var(--color-amber) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.logo-tagline {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-amber-light);
+  font-family: var(--font-mono);
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.nav-public {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.nav-public .btn {
+  white-space: nowrap;
+}
+
+/* Responsive Header */
+@media (max-width: 768px) {
+  .header {
+    padding: var(--spacing-md) 0;
+  }
+
+  .header-container {
+    gap: var(--spacing-lg);
+  }
+
+  .header-logo {
+    font-size: 1.25rem;
+    gap: var(--spacing-sm);
+  }
+
+  .logo-icon {
+    font-size: 1.5rem;
+  }
+
+  .header-nav {
+    gap: var(--spacing-md);
+  }
+
+  .nav-public {
+    gap: var(--spacing-md);
+  }
+}

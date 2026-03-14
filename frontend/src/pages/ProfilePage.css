@@ -1,0 +1,16 @@
+.profile-page {
+  min-height: 100vh;
+  background: var(--bg-base);
+}
+
+.profile-content {
+  padding: 2rem 0;
+}
+
+.profile-content h1 {
+  color: var(--text-primary);
+}
+
+.profile-content p {
+  color: var(--text-secondary);
+}

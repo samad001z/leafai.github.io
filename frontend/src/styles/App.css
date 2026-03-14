@@ -2,7 +2,62 @@
 
 .app {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e4f0e8 100%);
+  background: linear-gradient(180deg, var(--bg-base) 0%, #10251f 100%);
+}
+
+/* Main Content Area */
+.app-main {
+  min-height: 100vh;
+}
+
+.app-main-public {
+  margin-left: 0;
+}
+
+.app-content-public {
+  width: 100%;
+}
+
+.app-main-shell {
+  background: var(--bg-base);
+}
+
+.app-content-max {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Desktop: >= 1024px */
+@media (min-width: 1024px) {
+  .app-main-shell {
+    margin-left: 220px;
+    padding: 40px 48px;
+  }
+}
+
+/* Tablet: 640px - 1023px */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .app-main-shell {
+    margin-left: 64px;
+    padding: 24px 28px;
+  }
+
+  .app-content-max {
+    max-width: none;
+  }
+}
+
+/* Mobile: < 640px */
+@media (max-width: 639px) {
+  .app-main-shell {
+    margin-left: 0;
+    padding: 72px 16px 80px;
+  }
+
+  .app-content-max {
+    max-width: none;
+  }
 }
 
 /* Button Styles - 48px minimum height for touch targets */
@@ -114,30 +169,6 @@
   color: #BDBDBD;
 }
 
-/* OTP Input Styles */
-.otp-container {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin: 20px 0;
-}
-
-.otp-input {
-  width: 50px;
-  height: 56px;
-  font-size: 1.5rem;
-  text-align: center;
-  border: 2px solid #E0E0E0;
-  border-radius: var(--border-radius);
-  transition: all 0.3s ease;
-}
-
-.otp-input:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(34, 139, 34, 0.2);
-}
-
 /* Icon Styles */
 .icon {
   width: 24px;
@@ -231,12 +262,13 @@
 }
 
 .modal-content {
-  background: var(--white);
+  background: var(--bg-surface);
   border-radius: var(--border-radius-lg);
   padding: 24px;
   max-width: 400px;
   width: 100%;
   box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(61, 214, 140, 0.2);
 }
 
 .modal-header {
@@ -251,7 +283,7 @@
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: var(--text-light);
+  color: var(--text-secondary);
   min-width: var(--min-touch-target);
   min-height: var(--min-touch-target);
   display: flex;
@@ -324,11 +356,6 @@
   
   h1 {
     font-size: 1.75rem;
-  }
-  
-  .otp-input {
-    width: 45px;
-    height: 50px;
   }
 }
 

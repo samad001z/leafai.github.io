@@ -1,0 +1,16 @@
+.history-page {
+  min-height: 100vh;
+  background: var(--bg-base);
+}
+
+.history-content {
+  padding: 2rem 0;
+}
+
+.history-content h1 {
+  color: var(--text-primary);
+}
+
+.history-content p {
+  color: var(--text-secondary);
+}

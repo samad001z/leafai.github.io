@@ -1,0 +1,16 @@
+.settings-page {
+  min-height: 100vh;
+  background: var(--bg-base);
+}
+
+.settings-content {
+  padding: 2rem 0;
+}
+
+.settings-content h1 {
+  color: var(--text-primary);
+}
+
+.settings-content p {
+  color: var(--text-secondary);
+}
