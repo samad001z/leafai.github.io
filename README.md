@@ -73,7 +73,7 @@ npm start
 
 6. **Start the frontend (in a new terminal)**
 ```bash
-cd frontend
+cd ../frontend
 npm start
 ```
 
@@ -85,8 +85,21 @@ npm start
 
 The app works in demo mode without a database:
 - Use OTP **123456** for any phone number
-- Image analysis returns mock results
+- Image analysis uses live Gemini when quota is available
+- If Gemini is unavailable/quota-limited, backend returns a clearly labeled temporary fallback response
 - Perfect for testing and development
+
+## Frontend-Backend Integration
+
+- Development:
+	- Frontend dev server runs on port 3000 and proxies API calls to backend 5000 via CRA proxy.
+	- API requests can be written as `/api/...`.
+- Docker/Production:
+	- Frontend is served by nginx and proxies `/api` and `/uploads` to backend service.
+	- Default production API URL is same-origin `/api` (no localhost coupling).
+
+Optional frontend env:
+- `REACT_APP_API_URL` (default: `/api`)
 
 ## Project Structure
 
