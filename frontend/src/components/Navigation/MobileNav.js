@@ -11,6 +11,7 @@ import {
   X,
 } from 'lucide-react';
 import { useLanguage } from '../../i18n/LanguageContext';
+import { LanguageSwitcher } from '../Common';
 import './Navigation.css';
 
 function MobileNav() {
@@ -62,10 +63,14 @@ function MobileNav() {
           </span>
         </Link>
 
-        <Link to="/alerts" className="top-bar-icon-btn top-bar-alert" aria-label={t('nav_alerts_label')}>
-          <Bell size={20} aria-hidden="true" />
-          {hasAlerts && <span className="top-bar-alert-dot" aria-hidden="true" />}
-        </Link>
+        <div className="top-bar-right-group">
+          <LanguageSwitcher compact className="top-bar-language-switcher" />
+
+          <Link to="/alerts" className="top-bar-icon-btn top-bar-alert" aria-label={t('nav_alerts_label')}>
+            <Bell size={20} aria-hidden="true" />
+            {hasAlerts && <span className="top-bar-alert-dot" aria-hidden="true" />}
+          </Link>
+        </div>
       </header>
 
       {/* Hamburger Drawer */}

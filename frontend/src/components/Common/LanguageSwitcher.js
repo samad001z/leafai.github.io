@@ -26,7 +26,7 @@ const LANGUAGE_OPTIONS = [
   { code: 'ko', label: '한국어', flag: '🇰🇷' },
 ];
 
-function LanguageSwitcher({ fixed = false, className = '' }) {
+function LanguageSwitcher({ fixed = false, compact = false, className = '' }) {
   const { lang, setLang, isTranslating, t } = useLanguage();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -43,6 +43,8 @@ function LanguageSwitcher({ fixed = false, className = '' }) {
   }, []);
 
   const currentOption = LANGUAGE_OPTIONS.find((o) => o.code === lang) || LANGUAGE_OPTIONS[0];
+  const triggerPadding = compact ? '6px 8px' : '7px 12px';
+  const triggerFontSize = compact ? '12px' : '13px';
 
   const handleSelect = async (code) => {
     setOpen(false);
@@ -64,11 +66,11 @@ function LanguageSwitcher({ fixed = false, className = '' }) {
           background: 'var(--bg-surface)',
           border: '1px solid var(--accent-soft)',
           borderRadius: '8px',
-          padding: '7px 12px',
+          padding: triggerPadding,
           cursor: isTranslating ? 'wait' : 'pointer',
           color: 'var(--text-secondary)',
           fontFamily: 'DM Sans',
-          fontSize: '13px',
+          fontSize: triggerFontSize,
           transition: 'border-color 0.2s',
           opacity: isTranslating ? 0.7 : 1,
         }}
@@ -76,7 +78,7 @@ function LanguageSwitcher({ fixed = false, className = '' }) {
         onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--accent-soft)'; }}
       >
         <Globe size={15} color="var(--text-secondary)" />
-        <span>{currentOption.flag} {currentOption.code.toUpperCase()}</span>
+        <span>{compact ? currentOption.code.toUpperCase() : `${currentOption.flag} ${currentOption.code.toUpperCase()}`}</span>
         <ChevronDown
           size={13}
           color="var(--text-muted)"
@@ -94,7 +96,7 @@ function LanguageSwitcher({ fixed = false, className = '' }) {
             border: '1px solid var(--accent-soft)',
             borderRadius: '12px',
             boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-            minWidth: '180px',
+            minWidth: compact ? '160px' : '180px',
             maxHeight: '320px',
             overflowY: 'auto',
             padding: '6px',
