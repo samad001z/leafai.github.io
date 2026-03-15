@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 const { getSupabaseAuthClient, isSupabaseAuthConfigured } = require('../lib/supabaseClient');
 const OTP = require('../models/OTP');
 
@@ -55,6 +56,37 @@ const shouldPreferDirectTwilio = () => {
   return String(process.env.OTP_DIRECT_TWILIO || '').toLowerCase() === 'true';
 };
 
+const otpMemoryStore = new Map();
+const getOtpTtlMs = () => {
+  const minutes = Number(process.env.OTP_EXPIRY_MINUTES || 5);
+  return Number.isFinite(minutes) && minutes > 0 ? minutes * 60 * 1000 : 5 * 60 * 1000;
+};
+
+const setMemoryOtp = ({ phone, otp }) => {
+  otpMemoryStore.set(phone, {
+    otp: String(otp),
+    expiresAt: Date.now() + getOtpTtlMs(),
+  });
+};
+
+const getMemoryOtp = (phone) => {
+  const entry = otpMemoryStore.get(phone);
+  if (!entry) return null;
+
+  if (Date.now() > entry.expiresAt) {
+    otpMemoryStore.delete(phone);
+    return null;
+  }
+
+  return String(entry.otp);
+};
+
+const clearMemoryOtp = (phone) => {
+  otpMemoryStore.delete(phone);
+};
+
+const isMongoReady = () => mongoose.connection?.readyState === 1;
+
 const canFallbackToTwilio = (message = '') => {
   const text = String(message || '').toLowerCase();
   return (
@@ -103,8 +135,47 @@ const sendDirectTwilioOtp = async ({ phone, otp }) => {
 };
 
 const persistOtp = async ({ phone, otp }) => {
-  await OTP.deleteMany({ phone });
-  await OTP.create({ phone, otp });
+  if (!isMongoReady()) {
+    setMemoryOtp({ phone, otp });
+    return 'memory';
+  }
+
+  try {
+    await OTP.deleteMany({ phone });
+    await OTP.create({ phone, otp });
+    return 'mongo';
+  } catch (error) {
+    console.warn('Persist OTP fallback to memory:', error.message);
+    setMemoryOtp({ phone, otp });
+    return 'memory';
+  }
+};
+
+const readOtp = async (phone) => {
+  if (isMongoReady()) {
+    try {
+      const otpRecord = await OTP.findOne({ phone }).sort({ createdAt: -1 });
+      if (otpRecord?.otp) {
+        return String(otpRecord.otp);
+      }
+    } catch (error) {
+      console.warn('Read OTP fallback to memory:', error.message);
+    }
+  }
+
+  return getMemoryOtp(phone);
+};
+
+const clearOtp = async (phone) => {
+  if (isMongoReady()) {
+    try {
+      await OTP.deleteMany({ phone });
+    } catch (error) {
+      console.warn('Clear OTP fallback to memory:', error.message);
+    }
+  }
+
+  clearMemoryOtp(phone);
 };
 
 const issueLocalPhoneSessionToken = ({ phone, name }) => {
@@ -118,13 +189,14 @@ const issueLocalPhoneSessionToken = ({ phone, name }) => {
 const sendUsingDirectTwilio = async ({ phone, res }) => {
   const otp = generateOtp();
   await sendDirectTwilioOtp({ phone, otp });
-  await persistOtp({ phone, otp });
+  const storage = await persistOtp({ phone, otp });
 
   res.json({
     success: true,
     message: 'OTP sent successfully',
     phone,
     provider: 'twilio-direct',
+    storage,
   });
 };
 
@@ -230,12 +302,12 @@ exports.verifyOtp = async (req, res) => {
     }
 
     if (shouldPreferDirectTwilio()) {
-      const otpRecord = await OTP.findOne({ phone }).sort({ createdAt: -1 });
-      if (!otpRecord || String(otpRecord.otp).trim() !== String(otp).trim()) {
+      const storedOtp = await readOtp(phone);
+      if (!storedOtp || storedOtp.trim() !== String(otp).trim()) {
         return res.status(400).json({ error: 'Invalid OTP' });
       }
 
-      await OTP.deleteMany({ phone });
+      await clearOtp(phone);
 
       const sessionToken = issueLocalPhoneSessionToken({ phone, name });
       return res.json({
@@ -263,12 +335,12 @@ exports.verifyOtp = async (req, res) => {
       console.error('Supabase verify OTP error:', error.message);
 
       if (hasDirectTwilioConfig() && canFallbackToTwilio(error.message)) {
-        const otpRecord = await OTP.findOne({ phone }).sort({ createdAt: -1 });
-        if (!otpRecord || String(otpRecord.otp).trim() !== String(otp).trim()) {
+        const storedOtp = await readOtp(phone);
+        if (!storedOtp || storedOtp.trim() !== String(otp).trim()) {
           return res.status(400).json({ error: 'Invalid OTP' });
         }
 
-        await OTP.deleteMany({ phone });
+        await clearOtp(phone);
 
         const sessionToken = issueLocalPhoneSessionToken({ phone, name });
         return res.json({
