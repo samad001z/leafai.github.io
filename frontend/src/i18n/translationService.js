@@ -1,6 +1,7 @@
+import { API_BASE_URL } from '../config/apiConfig';
+
 const CACHE_KEY_PREFIX = 'leafai_translation_v2_';
 const SOURCE_LANG = 'English';
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 
 // Language display names for translation prompt
 const LANGUAGE_NAMES = {
@@ -115,6 +116,7 @@ async function callGeminiTranslate(strings, langName, targetLang) {
   }
 
   if (!response.ok) {
+    lastBody = await response.text();
     console.warn('Gemini translation API fallback used:', response.status, lastBody.slice(0, 120));
     return {
       translations: Object.fromEntries(strings.map((s) => [s, s])),

@@ -99,7 +99,23 @@ The app works in demo mode without a database:
 	- Default production API URL is same-origin `/api` (no localhost coupling).
 
 Optional frontend env:
-- `REACT_APP_API_URL` (default: `/api`)
+- `REACT_APP_API_ORIGIN` (recommended, example: `https://leafai-backend.onrender.com`)
+- `REACT_APP_API_URL` (legacy override; if set, it should include `/api`)
+
+Frontend env template:
+- `frontend/.env.example`
+
+## Deploy (Docker Compose)
+
+From project root:
+
+```bash
+docker compose up --build -d
+```
+
+Then verify:
+- Frontend: `http://localhost:3000`
+- Backend health: `http://localhost:5000/api/health`
 
 ## Project Structure
 
