@@ -24,6 +24,15 @@ function AuthPage() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
+  const getAuthErrorMessage = (authError, fallback) => {
+    return (
+      authError?.response?.data?.error ||
+      authError?.response?.data?.message ||
+      authError?.message ||
+      fallback
+    );
+  };
+
   const sendOtp = async () => {
     setLoading(true);
     setError('');
@@ -36,7 +45,16 @@ function AuthPage() {
       setOtpSent(true);
       setMessage(`OTP sent to ${normalizedPhone}`);
     } catch (sendError) {
-      setError(sendError?.response?.data?.error || sendError?.message || 'Failed to send OTP');
+      const normalizedPhone = normalizePhone(phone);
+      const statusCode = sendError?.response?.status;
+      setPhone(normalizedPhone);
+      setError(getAuthErrorMessage(sendError, 'Failed to send OTP'));
+
+      // Render backends can be slow/wake up; allow manual OTP entry if user received SMS.
+      if (statusCode >= 500 && normalizedPhone) {
+        setOtpSent(true);
+        setMessage(`If you already received OTP on ${normalizedPhone}, enter it below.`);
+      }
     } finally {
       setLoading(false);
     }
@@ -52,7 +70,7 @@ function AuthPage() {
       setMessage('Login successful. Redirecting...');
       navigate('/home');
     } catch (verifyError) {
-      setError(verifyError?.response?.data?.error || verifyError?.message || 'OTP verification failed');
+      setError(getAuthErrorMessage(verifyError, 'OTP verification failed'));
     } finally {
       setLoading(false);
     }
@@ -147,6 +165,23 @@ function AuthPage() {
             }}
           >
             Change phone number
+          </button>
+        )}
+
+        {!otpSent && phone.trim() && (
+          <button
+            type="button"
+            className="auth-link-btn"
+            onClick={() => {
+              const normalizedPhone = normalizePhone(phone);
+              if (!normalizedPhone) return;
+              setPhone(normalizedPhone);
+              setOtpSent(true);
+              setMessage(`If you already received OTP on ${normalizedPhone}, enter it below.`);
+              setError('');
+            }}
+          >
+            I already received OTP
           </button>
         )}
 
