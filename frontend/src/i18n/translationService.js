@@ -1,6 +1,7 @@
 const CACHE_KEY_PREFIX = 'leafai_translation_v2_';
 const SOURCE_LANG = 'English';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const LOCAL_API_FALLBACK = 'http://localhost:5000/api';
 
 // Language display names for translation prompt
 const LANGUAGE_NAMES = {
@@ -38,12 +39,20 @@ export async function translateBatch(strings, targetLang) {
     return {};
   }
 
-  if (targetLang === 'en') {
+  const normalizedTarget = typeof targetLang === 'string'
+    ? targetLang.toLowerCase().trim()
+    : 'en';
+
+  if (!LANGUAGE_NAMES[normalizedTarget]) {
     return Object.fromEntries(strings.map((s) => [s, s]));
   }
 
-  const langName = LANGUAGE_NAMES[targetLang] || targetLang;
-  const cacheKey = `${CACHE_KEY_PREFIX}${targetLang}`;
+  if (normalizedTarget === 'en') {
+    return Object.fromEntries(strings.map((s) => [s, s]));
+  }
+
+  const langName = LANGUAGE_NAMES[normalizedTarget] || normalizedTarget;
+  const cacheKey = `${CACHE_KEY_PREFIX}${normalizedTarget}`;
 
   let cache = {};
   try {
@@ -56,7 +65,7 @@ export async function translateBatch(strings, targetLang) {
   const uncachedStrings = strings.filter((s) => !(s in cache));
 
   if (uncachedStrings.length > 0) {
-    const { translations, fallback } = await callGeminiTranslate(uncachedStrings, langName, targetLang);
+    const { translations, fallback } = await callGeminiTranslate(uncachedStrings, langName, normalizedTarget);
 
     // Do not persist fallback identity maps, otherwise failed translations get stuck in cache.
     if (!fallback) {
@@ -65,7 +74,7 @@ export async function translateBatch(strings, targetLang) {
       try {
         localStorage.setItem(cacheKey, JSON.stringify(cache));
       } catch (e) {
-        clearOldTranslationCaches(targetLang);
+        clearOldTranslationCaches(normalizedTarget);
         try {
           localStorage.setItem(cacheKey, JSON.stringify(cache));
         } catch (e2) {
@@ -79,19 +88,58 @@ export async function translateBatch(strings, targetLang) {
 }
 
 async function callGeminiTranslate(strings, langName, targetLang) {
-  const response = await fetch(`${API_BASE_URL}/translate`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      texts: strings,
-      targetLang,
-    }),
-  });
+  const baseUrls = API_BASE_URL === LOCAL_API_FALLBACK
+    ? [API_BASE_URL]
+    : [API_BASE_URL, LOCAL_API_FALLBACK];
+
+  let response;
+  let lastError;
+  let lastBody = '';
+
+  for (const baseUrl of baseUrls) {
+    try {
+      response = await fetch(`${baseUrl}/translate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          texts: strings,
+          targetLang,
+        }),
+      });
+
+      if (response.ok) {
+        break;
+      }
+
+      lastBody = await response.text();
+
+      // For unsupported language validation, do not retry; fallback immediately.
+      if (response.status === 400 && lastBody.includes('unsupported targetLang')) {
+        break;
+      }
+
+      // For other 4xx responses, try local fallback URL when available.
+      if (response.status >= 400 && response.status < 500 && baseUrl === LOCAL_API_FALLBACK) {
+        break;
+      }
+    } catch (error) {
+      lastError = error;
+      continue;
+    }
+  }
+
+  if (!response) {
+    console.error('Gemini translation API network error:', lastError?.message || 'unknown');
+    return {
+      translations: Object.fromEntries(strings.map((s) => [s, s])),
+      fallback: true,
+    };
+  }
 
   if (!response.ok) {
-    console.error('Gemini translation API error:', response.status);
+    console.warn('Gemini translation API fallback used:', response.status, lastBody.slice(0, 120));
     return {
       translations: Object.fromEntries(strings.map((s) => [s, s])),
       fallback: true,

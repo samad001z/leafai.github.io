@@ -1,32 +1,25 @@
 # Deployment Guide
 
-This project has three deployable services:
+This project has two deployable services:
 
 - Frontend: React static build
 - Backend: Node.js API
-- ML Service: Python Flask predictor
 
 ## Local verification checklist
 
-1. Start ML service:
-
-   cd ml-service
-   python predict_service.py
-
-2. Start backend:
+1. Start backend:
 
    cd backend
    npm start
 
-3. Start frontend:
+2. Start frontend:
 
    cd frontend
    npm start
 
-4. Verify health endpoints:
+3. Verify health endpoint:
 
    - Backend: http://localhost:5000/api/health
-   - ML: http://localhost:5001/health
 
 ## Docker deployment (recommended)
 
@@ -44,11 +37,10 @@ From project root:
 
    - Frontend: http://localhost:3000
    - Backend: http://localhost:5000/api/health
-   - ML: http://localhost:5001/health
 
 ## Render style deployment
 
-Deploy as three services:
+Deploy as two services:
 
 1. Frontend static/web service
    - Build command: npm install && npm run build
@@ -61,30 +53,15 @@ Deploy as three services:
    - Env:
      - PORT=5000
      - FRONTEND_URL=https://<frontend-domain>
-     - ML_SERVICE_URL=https://<ml-domain>/predict
      - MONGODB_URI=<optional>
-     - GEMINI_API_KEY=<required for translation>
-     - GEMINI_MODEL=gemini-2.0-flash
-
-3. ML web service
-   - Root directory: ml-service
-    - Python version: 3.11.9
-   - Start command: python predict_service.py
-    - If using Render dashboard environment variables, set: PYTHON_VERSION=3.11.9
-   - Ensure these files are deployed:
-     - predict_service.py
-     - requirements.txt
-     - labels.json
-     - plant_disease_model.h5
-       - runtime.txt
+         - GEMINI_API_KEY=<required for translation and disease detection>
+         - GEMINI_MODEL=gemini-2.5-flash
 
 ## Vercel + Render split
 
 - Deploy frontend on Vercel with REACT_APP_API_URL set to backend URL.
-- Deploy backend and ML on Render/Railway.
+- Deploy backend on Render/Railway.
 
 ## Notes
 
-- Do not deploy the training dataset folder; it is ignored in .gitignore.
-- Keep plant_disease_model.h5 in ml-service for inference deployments.
-- If backend returns timeout, verify ML service URL and reachability.
+- If backend returns timeout, verify Gemini API key/model and internet reachability.

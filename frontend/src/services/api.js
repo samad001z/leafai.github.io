@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-const HAS_EXPLICIT_API_URL = Boolean(process.env.REACT_APP_API_URL);
+const ENABLE_DEMO_FALLBACK = process.env.REACT_APP_ENABLE_DEMO_FALLBACK === 'true';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -74,11 +74,6 @@ const getMockAnalysisResult = async () => {
 // Scan Service
 export const scanService = {
   analyzeImage: async (imageFile) => {
-    if (!HAS_EXPLICIT_API_URL) {
-      console.log('Demo Mode: Returning mock analysis result');
-      return getMockAnalysisResult();
-    }
-
     try {
       const formData = new FormData();
       formData.append('image', imageFile);
@@ -90,9 +85,13 @@ export const scanService = {
       });
       return response.data;
     } catch (error) {
-      // For demo purposes, return mock result
-      console.log('Demo Mode: Returning mock analysis result');
-      return getMockAnalysisResult();
+      if (ENABLE_DEMO_FALLBACK) {
+        console.warn('Scan API failed, falling back to demo result:', error?.message);
+        return getMockAnalysisResult();
+      }
+
+      const apiMessage = error?.response?.data?.error || error?.message || 'Scan API request failed';
+      throw new Error(apiMessage);
     }
   },
 };

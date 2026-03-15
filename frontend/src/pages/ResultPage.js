@@ -30,6 +30,7 @@ function ResultPage({ result: routedResult }) {
 
   const createFallbackResult = () => ({
     uploadedImage: null,
+    meta: null,
     plantIdentity: {
       name: 'Tomato Plant',
       variety: 'Solanum lycopersicum',
@@ -70,9 +71,10 @@ function ResultPage({ result: routedResult }) {
     if (hasRichShape) {
       return {
         uploadedImage: raw.uploadedImage ?? fallback.uploadedImage,
+        meta: raw.meta ?? null,
         plantIdentity: {
           name: raw.plantIdentity?.name ?? fallback.plantIdentity.name,
-          variety: raw.plantIdentity?.variety ?? fallback.plantIdentity.variety,
+          variety: raw.plantIdentity?.scientificName ?? raw.plantIdentity?.variety ?? fallback.plantIdentity.variety,
           confidence: raw.plantIdentity?.confidence ?? fallback.plantIdentity.confidence,
         },
         disease: {
@@ -92,10 +94,13 @@ function ResultPage({ result: routedResult }) {
     // Legacy API/mock format: { disease, recommendations, severity, ... }
     return {
       uploadedImage: raw.uploadedImage ?? fallback.uploadedImage,
+      meta: raw.meta ?? null,
       plantIdentity: {
-        name: raw.isHealthy ? 'Plant' : fallback.plantIdentity.name,
-        variety: raw.disease?.scientificName ?? fallback.plantIdentity.variety,
-        confidence: raw.disease?.confidence ?? fallback.plantIdentity.confidence,
+        name: typeof raw?.plantIdentity?.name === 'string' && raw.plantIdentity.name.trim()
+          ? raw.plantIdentity.name
+          : 'Plant',
+        variety: raw?.plantIdentity?.scientificName ?? raw?.plantIdentity?.variety ?? '',
+        confidence: raw?.plantIdentity?.confidence ?? raw.disease?.confidence ?? 0.5,
       },
       disease: {
         name: raw.disease?.name ?? fallback.disease.name,
@@ -132,6 +137,7 @@ function ResultPage({ result: routedResult }) {
     routedResult?.uploadedImage ||
     null;
   const diseaseConfidence = Math.round(result.disease.confidence * 100);
+  const isFallbackResult = result.meta?.analysisMode === 'fallback';
 
   useEffect(() => {
     const saveTimer = setTimeout(() => setShowSavedIndicator(true), 1000);
@@ -184,6 +190,13 @@ function ResultPage({ result: routedResult }) {
                 <span className="result-chip result-chip-plant">{t(result.plantIdentity.name)}</span>
                 <span className="result-chip result-chip-disease">{t(result.disease.name)}</span>
               </div>
+
+              {isFallbackResult && (
+                <div className="result-auto-save visible" role="status" aria-live="polite">
+                  <AlertTriangle size={14} aria-hidden="true" />
+                  <span>AI quota reached: showing temporary fallback result</span>
+                </div>
+              )}
 
               <div className={`result-auto-save ${showSavedIndicator ? 'visible' : ''}`}>
                 <CheckCircle size={14} aria-hidden="true" />

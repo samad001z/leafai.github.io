@@ -14,11 +14,18 @@ const LANGUAGE_STORAGE_KEY = 'leafai_lang';
 const LanguageContext = createContext();
 
 const englishCatalog = translations.en || {};
+const SUPPORTED_LANGS = new Set(Object.keys(LANGUAGE_NAMES));
+
+const normalizeLang = (value) => {
+  const candidate = typeof value === 'string' ? value.toLowerCase().trim() : 'en';
+  return SUPPORTED_LANGS.has(candidate) ? candidate : 'en';
+};
 
 export function LanguageProvider({ children }) {
-  const [lang, setLangState] = useState(() =>
-    localStorage.getItem(LANGUAGE_STORAGE_KEY) || 'en'
-  );
+  const [lang, setLangState] = useState(() => {
+    const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    return normalizeLang(stored);
+  });
   // translationMap: { [originalEnglish]: translatedString }
   const [translationMap, setTranslationMap] = useState({});
   const [isTranslating, setIsTranslating] = useState(false);
@@ -85,10 +92,11 @@ export function LanguageProvider({ children }) {
   }, [translateValue]);
 
   const setLang = useCallback(async (newLang) => {
-    setLangState(newLang);
-    localStorage.setItem(LANGUAGE_STORAGE_KEY, newLang);
+    const normalizedLang = normalizeLang(newLang);
+    setLangState(normalizedLang);
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, normalizedLang);
 
-    if (newLang === 'en') {
+    if (normalizedLang === 'en') {
       setTranslationMap({});
       return;
     }
@@ -97,7 +105,7 @@ export function LanguageProvider({ children }) {
     if (allStrings.length > 0) {
       setIsTranslating(true);
       try {
-        const newTranslations = await translateBatch(allStrings, newLang);
+        const newTranslations = await translateBatch(allStrings, normalizedLang);
         setTranslationMap(newTranslations);
       } catch (e) {
         console.error('Language switch translation failed:', e);

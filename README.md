@@ -30,7 +30,7 @@ Built specifically for farmers with:
 - **Backend**: Node.js, Express
 - **Database**: MongoDB (optional, app works in demo mode)
 - **Styling**: Custom CSS with farmer-friendly color palette
-- **ML Model**: Placeholder ready for integration
+- **AI Detection**: Gemini API (image-based disease detection)
 
 ## Quick Start
 
@@ -105,7 +105,6 @@ project-interface/
 │   ├── routes/              # API routes
 │   └── uploads/             # Uploaded images
 ├── plan.md                   # Implementation plan
-├── ML_INTEGRATION.md         # ML model integration guide
 └── README.md                 # This file
 ```
 
@@ -132,9 +131,12 @@ project-interface/
 | Sunflower Yellow | #FFD700 | Accents, highlights |
 | Cream | #FFF8DC | Background |
 
-## ML Model Integration
+## Gemini Configuration
 
-See [ML_INTEGRATION.md](./ML_INTEGRATION.md) for detailed instructions on integrating a machine learning model for plant disease detection.
+Set these backend environment variables:
+
+- `GEMINI_API_KEY` (required)
+- `GEMINI_MODEL` (optional, default: `gemini-2.5-flash`)
 
 ## Contributing
 

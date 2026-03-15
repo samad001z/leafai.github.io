@@ -10,10 +10,29 @@ const translationRoutes = require('./routes/translation');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const MAX_PORT_RETRIES = 10;
+
+const configuredOrigins = (process.env.FRONTEND_URL || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const allowedOrigins = new Set([
+  'http://localhost:3000',
+  'http://localhost:3001',
+  ...configuredOrigins,
+]);
 
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin(origin, callback) {
+    // Allow server-to-server tools and whitelisted browser origins.
+    if (!origin || allowedOrigins.has(origin)) {
+      callback(null, true);
+      return;
+    }
+    callback(null, false);
+  },
   credentials: true,
 }));
 app.use(express.json());
@@ -57,12 +76,31 @@ const connectDB = async () => {
   }
 };
 
-// Start server
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`API available at http://localhost:${PORT}/api`);
+// Start server with automatic fallback when preferred port is occupied.
+const startServer = (port, attempt = 0) => {
+  const server = app.listen(port, () => {
+    if (attempt > 0) {
+      console.log(`Preferred port ${PORT} was busy, switched to ${port}`);
+    }
+    console.log(`Server running on port ${port}`);
+    console.log(`API available at http://localhost:${port}/api`);
   });
+
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE' && attempt < MAX_PORT_RETRIES) {
+      const nextPort = Number(port) + 1;
+      console.warn(`Port ${port} is in use, retrying on ${nextPort}...`);
+      startServer(nextPort, attempt + 1);
+      return;
+    }
+
+    console.error('Failed to start server:', err.message);
+    process.exit(1);
+  });
+};
+
+connectDB().then(() => {
+  startServer(Number(PORT));
 });
 
 module.exports = app;
