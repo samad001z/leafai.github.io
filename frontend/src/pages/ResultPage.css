@@ -672,4 +672,37 @@
   .result-page .preview-image {
     height: 220px;
   }
+
+  .result-page .result-content-wrapper {
+    padding: 10px 0 18px;
+  }
+
+  .result-page .card-header {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  .result-page .card-title {
+    font-size: 1rem;
+  }
+
+  .result-page .card-body {
+    padding: 14px;
+  }
+
+  .result-page .confidence-row,
+  .result-page .severity-row {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .result-page .treatment-steps li,
+  .result-page .prevention-list li {
+    gap: 10px;
+    font-size: 0.9rem;
+  }
+
+  .result-page .left-panel-actions {
+    gap: 8px;
+  }
 }

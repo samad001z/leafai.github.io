@@ -28,7 +28,7 @@ Built specifically for farmers with:
 
 - **Frontend**: React.js 18
 - **Backend**: Node.js, Express
-- **Database**: MongoDB (optional, app works in demo mode)
+- **Database**: MongoDB (optional) + Supabase (optional, used for scan history persistence)
 - **Styling**: Custom CSS with farmer-friendly color palette
 - **AI Detection**: Gemini API (image-based disease detection)
 
@@ -87,6 +87,7 @@ The app works in demo mode without a database:
 - Use OTP **123456** for any phone number
 - Image analysis uses live Gemini when quota is available
 - If Gemini is unavailable/quota-limited, backend returns a clearly labeled temporary fallback response
+- Scan history persistence is disabled unless Supabase is configured
 - Perfect for testing and development
 
 ## Frontend-Backend Integration
@@ -141,12 +142,12 @@ project-interface/
 
 ### Authentication
 - `POST /api/auth/send-otp` - Send OTP to phone number
-- `POST /api/auth/signup` - Register new user
-- `POST /api/auth/signin` - Login existing user
+- `POST /api/auth/verify-otp` - Verify OTP for login/signup
+- `GET /api/auth/me` - Get current authenticated user
 
 ### Plant Scanning
 - `POST /api/scan/analyze` - Analyze plant image
-- `GET /api/scan/history` - Get scan history (coming soon)
+- `GET /api/scan/history` - Get recent scan history (supports `?limit=30`)
 
 ### Health Check
 - `GET /api/health` - Check API status
@@ -166,6 +167,35 @@ Set these backend environment variables:
 
 - `GEMINI_API_KEY` (required)
 - `GEMINI_MODEL` (optional, default: `gemini-2.5-flash`)
+
+## Supabase History Setup
+
+Set these backend environment variables to enable persistent scan history:
+
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_PUBLISHABLE_KEY` (required for phone OTP auth flow)
+- `SUPABASE_SCAN_HISTORY_TABLE` (optional, default: `scan_history`)
+
+Create this table in Supabase SQL editor:
+
+```sql
+create table if not exists public.scan_history (
+	id uuid primary key default gen_random_uuid(),
+	created_at timestamptz not null default now(),
+	plant_name text,
+	disease_name text,
+	confidence double precision,
+	severity text,
+	analysis_mode text,
+	reason_code text,
+	image_mime_type text,
+	result jsonb not null
+);
+
+create index if not exists scan_history_created_at_idx
+	on public.scan_history (created_at desc);
+```
 
 ## Contributing
 

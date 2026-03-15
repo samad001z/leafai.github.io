@@ -34,12 +34,20 @@ function ScannerPage({ onScanComplete }) {
   const [isDragging, setIsDragging] = useState(false);
   const [useCamera, setUseCamera] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
+  const [cameraStarting, setCameraStarting] = useState(false);
 
   const analysisMessages = [
     t('scan_processing1'),
     t('scan_processing2'),
     t('scan_processing3'),
   ];
+
+  const fileToDataUrl = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('Failed to process selected image'));
+    reader.readAsDataURL(file);
+  });
 
   // Cycle through analysis messages
   useEffect(() => {
@@ -51,34 +59,135 @@ function ScannerPage({ onScanComplete }) {
     }
   }, [isAnalyzing, analysisMessages.length]);
 
-  // Initialize camera
-  useEffect(() => {
-    if (useCamera && !cameraActive) {
-      initializeCamera();
+  const stopCameraStream = () => {
+    const stream = videoRef.current?.srcObject;
+    if (stream) {
+      const tracks = stream.getTracks();
+      tracks.forEach((track) => track.stop());
+      videoRef.current.srcObject = null;
+    }
+    setCameraActive(false);
+  };
+
+  const attachStreamToVideo = async (stream) => {
+    if (!videoRef.current) {
+      throw new Error('Camera element not available');
     }
 
-    const currentVideo = videoRef.current;
+    const videoEl = videoRef.current;
+    videoEl.srcObject = stream;
+    videoEl.muted = true;
+    videoEl.setAttribute('playsinline', 'true');
+    videoEl.setAttribute('webkit-playsinline', 'true');
 
+    await new Promise((resolve, reject) => {
+      let done = false;
+
+      const finish = () => {
+        if (done) return;
+        done = true;
+        resolve();
+      };
+
+      const fail = () => {
+        if (done) return;
+        done = true;
+        reject(new Error('Camera failed to load metadata'));
+      };
+
+      const timeoutId = setTimeout(fail, 4000);
+      videoEl.onloadedmetadata = () => {
+        clearTimeout(timeoutId);
+        finish();
+      };
+    });
+
+    await videoEl.play();
+  };
+
+  // Initialize/stop camera only when camera mode toggles.
+  useEffect(() => {
+    if (useCamera) {
+      initializeCamera();
+      return;
+    }
+
+    stopCameraStream();
+  }, [useCamera]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Ensure stream is released on unmount.
+  useEffect(() => {
     return () => {
-      if (currentVideo?.srcObject) {
-        const tracks = currentVideo.srcObject.getTracks();
-        tracks.forEach((track) => track.stop());
-      }
+      stopCameraStream();
     };
-  }, [useCamera, cameraActive, cameraActive]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const initializeCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
-      });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        setCameraActive(true);
-      }
-    } catch (err) {
+    if (!navigator?.mediaDevices?.getUserMedia) {
       setError(t('err_camera_unavailable'));
+      cameraInputRef.current?.click();
       setUseCamera(false);
+      return;
+    }
+
+    setCameraStarting(true);
+    setError('');
+    stopCameraStream();
+
+    try {
+      const constraintCandidates = [
+        {
+          video: {
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+          },
+          audio: false,
+        },
+        {
+          video: {
+            facingMode: { ideal: 'environment' },
+          },
+          audio: false,
+        },
+        {
+          video: {
+            facingMode: 'user',
+          },
+          audio: false,
+        },
+        {
+          video: true,
+          audio: false,
+        },
+      ];
+
+      let stream = null;
+      let lastError = null;
+
+      for (const constraints of constraintCandidates) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia(constraints);
+          break;
+        } catch (streamError) {
+          lastError = streamError;
+        }
+      }
+
+      if (!stream) {
+        throw lastError || new Error('Failed to open camera stream');
+      }
+
+      await attachStreamToVideo(stream);
+      setCameraActive(true);
+    } catch (err) {
+      console.error('Camera initialization failed:', err);
+      setError(t('err_camera_unavailable'));
+      if (cameraInputRef.current) {
+        cameraInputRef.current.click();
+      }
+    } finally {
+      setCameraStarting(false);
     }
   };
 
@@ -102,6 +211,7 @@ function ScannerPage({ onScanComplete }) {
     setImagePreview(URL.createObjectURL(file));
     setError('');
     setUseCamera(false);
+    stopCameraStream();
   };
 
   const handleDragOver = (e) => {
@@ -130,6 +240,11 @@ function ScannerPage({ onScanComplete }) {
   const handleCameraCapture = () => {
     if (!cameraActive || !videoRef.current) return;
 
+    if (videoRef.current.readyState < 2 || !videoRef.current.videoWidth || !videoRef.current.videoHeight) {
+      setError('Camera not ready yet. Please wait and try again.');
+      return;
+    }
+
     const canvas = document.createElement('canvas');
     canvas.width = videoRef.current.videoWidth;
     canvas.height = videoRef.current.videoHeight;
@@ -137,6 +252,10 @@ function ScannerPage({ onScanComplete }) {
     ctx.drawImage(videoRef.current, 0, 0);
 
     canvas.toBlob((blob) => {
+      if (!blob) {
+        setError('Failed to capture image. Please retry.');
+        return;
+      }
       const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
       processFile(file);
     }, 'image/jpeg');
@@ -174,7 +293,7 @@ function ScannerPage({ onScanComplete }) {
       }
 
       const result = await scanService.analyzeImage(selectedImage);
-      const scannedImageUrl = URL.createObjectURL(selectedImage);
+      const scannedImageUrl = await fileToDataUrl(selectedImage);
       if (cancelAnalysisRef.current) {
         clearInterval(progressInterval);
         return;
@@ -211,6 +330,7 @@ function ScannerPage({ onScanComplete }) {
     setError('');
     setUploadProgress(0);
     setUseCamera(false);
+    stopCameraStream();
     if (fileInputRef.current) fileInputRef.current.value = '';
     if (cameraInputRef.current) cameraInputRef.current.value = '';
   };
@@ -324,20 +444,37 @@ function ScannerPage({ onScanComplete }) {
                   <Button
                     variant="secondary"
                     size="md"
-                    onClick={() => setUseCamera(false)}
+                    onClick={() => {
+                      setUseCamera(false);
+                      stopCameraStream();
+                    }}
                   >
                     <ChevronLeft size={16} />
                     {t('scan_back_upload')}
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="md"
+                    onClick={initializeCamera}
+                    disabled={cameraStarting}
+                  >
+                    <RotateCcw size={16} />
+                    Retry camera
                   </Button>
                   
                   <button
                     className="camera-shutter-btn"
                     onClick={handleCameraCapture}
+                    disabled={cameraStarting || !cameraActive}
                     title={t('scan_capture_photo')}
                   >
+                    <span className="shutter-outer-ring"></span>
                     <span className="shutter-inner"></span>
                   </button>
                 </div>
+
+                {cameraStarting && <p className="camera-loading-text">Starting camera...</p>}
               </div>
             ) : (
               <div className="upload-state">

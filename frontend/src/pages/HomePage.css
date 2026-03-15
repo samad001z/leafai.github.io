@@ -211,6 +211,17 @@
   color: var(--color-text-primary);
 }
 
+.scans-empty,
+.scans-error {
+  text-align: center;
+  padding: 1.1rem;
+  color: var(--text-secondary);
+}
+
+.scans-error {
+  color: #e58f8f;
+}
+
 .scan-row {
   transition: all var(--transition-base);
   position: relative;
@@ -410,6 +421,63 @@
 
   .pagination-btn {
     width: 100%;
+  }
+}
+
+@media (max-width: 639px) {
+  .dashboard-layout {
+    padding: 0.25rem 0 1rem;
+  }
+
+  .dashboard-welcome {
+    padding: 0.9rem;
+    border-radius: 14px;
+    margin-bottom: 1rem;
+  }
+
+  .dashboard-welcome h1 {
+    font-size: 1.25rem;
+    line-height: 1.25;
+  }
+
+  .dashboard-welcome p {
+    font-size: 0.85rem;
+  }
+
+  .home-kpi-card,
+  .home-feature-card {
+    padding: 0.85rem;
+  }
+
+  .home-kpi-value {
+    font-size: 1.2rem;
+  }
+
+  .home-feature-card h3 {
+    font-size: 0.96rem;
+  }
+
+  .scans-header {
+    padding: 0.8rem 0.95rem;
+  }
+
+  .scans-table {
+    min-width: 520px;
+    font-size: 0.78rem;
+  }
+
+  .scans-table th,
+  .scans-table td {
+    padding: 0.55rem 0.5rem;
+  }
+
+  .scans-table th:nth-child(6),
+  .scans-table td:nth-child(6) {
+    display: none;
+  }
+
+  .pagination {
+    padding: 0.85rem;
   }
 }
 

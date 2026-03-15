@@ -11,23 +11,26 @@ const translationRoutes = require('./routes/translation');
 const app = express();
 const PORT = process.env.PORT || 5000;
 const MAX_PORT_RETRIES = 10;
+const normalizeOrigin = (origin) => (typeof origin === 'string' ? origin.trim().replace(/\/+$/, '') : '');
 
 const configuredOrigins = (process.env.FRONTEND_URL || '')
   .split(',')
-  .map((origin) => origin.trim())
+  .map((origin) => normalizeOrigin(origin))
   .filter(Boolean);
 
 const allowedOrigins = new Set([
   'http://localhost:3000',
   'http://localhost:3001',
+  'https://leafai-github-io.vercel.app',
   ...configuredOrigins,
 ]);
 
 // Middleware
 app.use(cors({
   origin(origin, callback) {
+    const normalizedOrigin = normalizeOrigin(origin);
     // Allow server-to-server tools and whitelisted browser origins.
-    if (!origin || allowedOrigins.has(origin)) {
+    if (!origin || allowedOrigins.has(normalizedOrigin)) {
       callback(null, true);
       return;
     }

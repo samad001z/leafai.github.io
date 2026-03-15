@@ -20,6 +20,7 @@ function ResultPage({ result: routedResult }) {
   const [treatmentMode, setTreatmentMode] = useState('chemical');
   const [showSavedIndicator, setShowSavedIndicator] = useState(false);
   const [animatedConfidence, setAnimatedConfidence] = useState(0);
+  const [imageLoadFailed, setImageLoadFailed] = useState(false);
 
   const translatedTreatmentSteps = {
     chemical: t('treatment_chemical_steps'),
@@ -69,6 +70,7 @@ function ResultPage({ result: routedResult }) {
 
     const hasRichShape = raw.plantIdentity || raw.treatments || raw.prevention;
     if (hasRichShape) {
+      const fallbackChemical = Array.isArray(raw.recommendations) ? raw.recommendations : fallback.treatments.chemical;
       return {
         uploadedImage: raw.uploadedImage ?? fallback.uploadedImage,
         meta: raw.meta ?? null,
@@ -84,10 +86,14 @@ function ResultPage({ result: routedResult }) {
           color: raw.disease?.color ?? fallback.disease.color,
         },
         treatments: {
-          chemical: Array.isArray(raw.treatments?.chemical) ? raw.treatments.chemical : fallback.treatments.chemical,
+          chemical: Array.isArray(raw.treatments?.chemical) && raw.treatments.chemical.length > 0
+            ? raw.treatments.chemical
+            : fallbackChemical,
           organic: Array.isArray(raw.treatments?.organic) ? raw.treatments.organic : fallback.treatments.organic,
         },
-        prevention: Array.isArray(raw.prevention) ? raw.prevention : fallback.prevention,
+        prevention: Array.isArray(raw.prevention) && raw.prevention.length > 0
+          ? raw.prevention
+          : fallback.prevention,
       };
     }
 
@@ -149,6 +155,10 @@ function ResultPage({ result: routedResult }) {
     };
   }, [diseaseConfidence]);
 
+  useEffect(() => {
+    setImageLoadFailed(false);
+  }, [imageUrl]);
+
   const getSeverityLabel = (severity) => {
     if (severity >= 80) return t('severity_high');
     if (severity >= 50) return t('severity_moderate');
@@ -176,8 +186,13 @@ function ResultPage({ result: routedResult }) {
             {/* Left Panel */}
             <aside className="result-image-section">
               <div className="image-preview-container">
-                {imageUrl ? (
-                  <img src={imageUrl} alt="Scanned leaf" className="preview-image" />
+                {imageUrl && !imageLoadFailed ? (
+                  <img
+                    src={imageUrl}
+                    alt="Scanned leaf"
+                    className="preview-image"
+                    onError={() => setImageLoadFailed(true)}
+                  />
                 ) : (
                   <div className="result-image-fallback">
                     <Leaf size={28} aria-hidden="true" />

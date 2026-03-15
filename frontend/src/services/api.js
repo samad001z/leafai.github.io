@@ -2,12 +2,22 @@ import axios from 'axios';
 import { API_BASE_URL } from '../config/apiConfig';
 
 const ENABLE_DEMO_FALLBACK = process.env.REACT_APP_ENABLE_DEMO_FALLBACK === 'true';
+const AUTH_TOKEN_STORAGE_KEY = 'leafai_auth_token';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
+  if (token) {
+    config.headers = config.headers || {};
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 const getMockAnalysisResult = async () => {
@@ -94,6 +104,13 @@ export const scanService = {
       throw new Error(apiMessage);
     }
   },
+
+  getHistory: async (limit = 20) => {
+    const response = await api.get('/scan/history', {
+      params: { limit },
+    });
+    return response.data;
+  },
 };
 
 export const translationService = {
@@ -104,6 +121,30 @@ export const translationService = {
     });
     return response.data;
   },
+};
+
+export const authService = {
+  requestOtp: async (phone) => {
+    const response = await api.post('/auth/send-otp', { phone });
+    return response.data;
+  },
+
+  verifyOtp: async ({ phone, otp, name }) => {
+    const response = await api.post('/auth/verify-otp', { phone, otp, name });
+    return response.data;
+  },
+
+  getMe: async () => {
+    const response = await api.get('/auth/me');
+    return response.data;
+  },
+};
+
+export const authStorage = {
+  tokenKey: AUTH_TOKEN_STORAGE_KEY,
+  getToken: () => localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || '',
+  setToken: (token) => localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token),
+  clearToken: () => localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY),
 };
 
 export default api;

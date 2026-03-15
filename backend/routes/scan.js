@@ -3,6 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const scanController = require('../controllers/scanController');
+const { requireAuth } = require('../middleware/authMiddleware');
 
 // Configure multer for image uploads
 const storage = multer.diskStorage({
@@ -33,9 +34,9 @@ const upload = multer({
 });
 
 // Analyze plant image
-router.post('/analyze', upload.single('image'), scanController.analyzeImage);
+router.post('/analyze', requireAuth, upload.single('image'), scanController.analyzeImage);
 
 // Get scan history (for future use)
-router.get('/history', scanController.getHistory);
+router.get('/history', requireAuth, scanController.getHistory);
 
 module.exports = router;

@@ -86,9 +86,7 @@
 
 @media (max-width: 639px) {
   .language-switcher-fixed {
-    top: 12px;
-    right: 16px;
-    z-index: 1001;
+    display: none;
   }
 
   .language-switcher-trigger {

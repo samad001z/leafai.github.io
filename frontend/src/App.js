@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
+import AuthPage from './pages/AuthPage';
 import HomePage from './pages/HomePage';
 import ScannerPage from './pages/ScannerPage';
 import ResultPage from './pages/ResultPage';
@@ -10,14 +11,30 @@ import SettingsPage from './pages/SettingsPage';
 import ProfilePage from './pages/ProfilePage';
 import Navigation from './components/Navigation/Navigation';
 import { LanguageSwitcher } from './components/Common';
+import { useAuth } from './auth/AuthContext';
 import './styles/App.css';
+
+function ProtectedRoute({ children }) {
+  const { isAuthenticated, isBootstrapping } = useAuth();
+
+  if (isBootstrapping) {
+    return <div style={{ color: 'var(--text-secondary)', padding: '24px' }}>Loading session...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  return children;
+}
 
 function AppContent() {
   const [scanResult, setScanResult] = useState(null);
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
 
   // Keep landing page clean; show app navigation on feature pages.
-  const showNavigation = location.pathname !== '/';
+  const showNavigation = isAuthenticated && location.pathname !== '/' && location.pathname !== '/auth';
 
   const handleScanComplete = (result) => {
     setScanResult(result);
@@ -31,39 +48,40 @@ function AppContent() {
         <div className={showNavigation ? 'app-content-max' : 'app-content-public'}>
           <Routes>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/auth" element={isAuthenticated ? <Navigate to="/home" replace /> : <AuthPage />} />
             <Route 
               path="/home" 
-              element={<HomePage />} 
+              element={<ProtectedRoute><HomePage /></ProtectedRoute>} 
             />
             <Route
               path="/dashboard"
-              element={<HomePage />}
+              element={<ProtectedRoute><HomePage /></ProtectedRoute>}
             />
             <Route 
               path="/scan" 
-              element={<ScannerPage onScanComplete={handleScanComplete} />} 
+              element={<ProtectedRoute><ScannerPage onScanComplete={handleScanComplete} /></ProtectedRoute>} 
             />
             <Route 
               path="/result" 
-              element={<ResultPage result={scanResult} />} 
+              element={<ProtectedRoute><ResultPage result={scanResult} /></ProtectedRoute>} 
             />
             <Route 
               path="/history" 
-              element={<HistoryPage />} 
+              element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} 
             />
             <Route 
               path="/alerts" 
-              element={<AlertsPage />} 
+              element={<ProtectedRoute><AlertsPage /></ProtectedRoute>} 
             />
             <Route 
               path="/settings" 
-              element={<SettingsPage />} 
+              element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} 
             />
             <Route 
               path="/profile" 
-              element={<ProfilePage />} 
+              element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} 
             />
-            <Route path="*" element={<Navigate to="/home" replace />} />
+            <Route path="*" element={<Navigate to={isAuthenticated ? '/home' : '/auth'} replace />} />
           </Routes>
         </div>
       </main>

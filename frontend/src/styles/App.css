@@ -8,6 +8,7 @@
 /* Main Content Area */
 .app-main {
   min-height: 100vh;
+  width: 100%;
 }
 
 .app-main-public {
@@ -20,6 +21,7 @@
 
 .app-main-shell {
   background: var(--bg-base);
+  width: 100%;
 }
 
 .app-content-max {
@@ -52,11 +54,18 @@
 @media (max-width: 639px) {
   .app-main-shell {
     margin-left: 0;
-    padding: 72px 16px 80px;
+    padding: calc(56px + env(safe-area-inset-top) + 10px) 12px calc(66px + env(safe-area-inset-bottom) + 12px);
   }
 
   .app-content-max {
     max-width: none;
+    min-width: 0;
+  }
+
+  .app-main,
+  .app-main-shell,
+  .app-content-max {
+    overflow-x: clip;
   }
 }
 

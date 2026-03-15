@@ -107,3 +107,9 @@
     gap: var(--spacing-md);
   }
 }
+
+@media (max-width: 639px) {
+  .header {
+    display: none;
+  }
+}
