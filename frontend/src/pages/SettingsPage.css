@@ -107,6 +107,44 @@
   color: var(--text-secondary);
 }
 
+.settings-theme-toggle {
+  display: flex;
+  gap: 0.6rem;
+  border-radius: 10px;
+  padding: 0.25rem;
+  background: rgba(61, 214, 140, 0.08);
+  border: 1px solid rgba(61, 214, 140, 0.2);
+}
+
+.theme-option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.theme-option:hover {
+  color: var(--text-primary);
+  background: rgba(61, 214, 140, 0.05);
+}
+
+.theme-option.active {
+  background: var(--accent-primary);
+  color: var(--bg-base);
+  border-color: var(--accent-primary);
+  box-shadow: 0 2px 8px rgba(61, 214, 140, 0.25);
+}
+
 @media (max-width: 639px) {
   .settings-content {
     padding: 1rem 0;
@@ -125,6 +163,15 @@
   .settings-card {
     padding: 0.85rem;
     border-radius: 14px;
+  }
+
+  .settings-theme-toggle {
+    gap: 0.4rem;
+  }
+
+  .theme-option {
+    font-size: 0.85rem;
+    padding: 0.45rem 0.6rem;
   }
 
   .settings-actions {

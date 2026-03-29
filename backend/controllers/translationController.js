@@ -95,29 +95,64 @@ exports.translateBatch = async (req, res) => {
     ].join('\n');
 
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiApiKey}`;
-    const geminiResponse = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            role: 'user',
-            parts: [{ text: prompt }],
-          },
-        ],
-        generationConfig: {
-          temperature: 0.2,
-          topP: 0.8,
-          maxOutputTokens: 2048,
+    
+    // Retry logic with exponential backoff for 429 errors
+    let geminiResponse;
+    let retryCount = 0;
+    const maxRetries = 3;
+    
+    while (retryCount < maxRetries) {
+      geminiResponse = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      }),
-    });
+        body: JSON.stringify({
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: prompt }],
+            },
+          ],
+          generationConfig: {
+            temperature: 0.2,
+            topP: 0.8,
+            maxOutputTokens: 2048,
+          },
+        }),
+      });
+
+      // If success, break retry loop
+      if (geminiResponse.ok) {
+        break;
+      }
+
+      // If 429 (quota exceeded), wait and retry
+      if (geminiResponse.status === 429 && retryCount < maxRetries - 1) {
+        const delay = Math.min(1000 * Math.pow(2, retryCount), 5000); // exponential backoff, max 5s
+        console.warn(`Gemini quota hit, retrying in ${delay}ms (attempt ${retryCount + 1}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        retryCount++;
+        continue;
+      }
+
+      // For other errors or final retry failure, break
+      break;
+    }
 
     if (!geminiResponse.ok) {
       const errText = await geminiResponse.text();
       console.error('Gemini translate API error:', geminiResponse.status, errText);
+      
+      // For 429 errors after retries, return better error message
+      if (geminiResponse.status === 429) {
+        return res.status(429).json({ 
+          error: 'API quota exceeded. Please check your Gemini API billing or try again later.',
+          fallback: true,
+          translations: texts 
+        });
+      }
+      
       return res.json({ success: true, translations: texts, fallback: true });
     }
 

@@ -16,11 +16,16 @@ import './ResultPage.css';
 function ResultPage({ result: routedResult }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { t } = useLanguage();
+  const { t, translatedResult, isTranslatingResult, setNewResult } = useLanguage();
   const [treatmentMode, setTreatmentMode] = useState('chemical');
   const [showSavedIndicator, setShowSavedIndicator] = useState(false);
   const [animatedConfidence, setAnimatedConfidence] = useState(0);
   const [imageLoadFailed, setImageLoadFailed] = useState(false);
+
+  // Use translatedResult from context if available (keeps up-to-date when 
+  // language changes). Fall back to navigation state for first render.
+  const navigationResult = location.state?.result;
+  const rawResult = translatedResult || navigationResult || routedResult;
 
   const translatedTreatmentSteps = {
     chemical: t('treatment_chemical_steps'),
@@ -69,6 +74,8 @@ function ResultPage({ result: routedResult }) {
     }
 
     const hasRichShape = raw.plantIdentity || raw.treatments || raw.prevention;
+    const hasGeminiShape = raw.plant_name || raw.treatment_chemical || raw.treatment_organic || raw.disease_name;
+    
     if (hasRichShape) {
       const fallbackChemical = Array.isArray(raw.recommendations) ? raw.recommendations : fallback.treatments.chemical;
       return {
@@ -93,6 +100,36 @@ function ResultPage({ result: routedResult }) {
         },
         prevention: Array.isArray(raw.prevention) && raw.prevention.length > 0
           ? raw.prevention
+          : fallback.prevention,
+      };
+    }
+
+    // Gemini API format: { plant_name, disease_name, treatment_chemical[], treatment_organic[], prevention_tips[] }
+    if (hasGeminiShape) {
+      return {
+        uploadedImage: raw.uploadedImage ?? fallback.uploadedImage,
+        meta: raw.meta ?? null,
+        plantIdentity: {
+          name: raw.plant_name ?? fallback.plantIdentity.name,
+          variety: raw.scientific_name ?? fallback.plantIdentity.variety,
+          confidence: raw.plant_confidence ?? fallback.plantIdentity.confidence,
+        },
+        disease: {
+          name: raw.disease_name ?? fallback.disease.name,
+          confidence: raw.disease_confidence ?? fallback.disease.confidence,
+          severity: toSeverityScore(raw.severity),
+          color: fallback.disease.color,
+        },
+        treatments: {
+          chemical: Array.isArray(raw.treatment_chemical) && raw.treatment_chemical.length > 0
+            ? raw.treatment_chemical
+            : fallback.treatments.chemical,
+          organic: Array.isArray(raw.treatment_organic) && raw.treatment_organic.length > 0
+            ? raw.treatment_organic
+            : fallback.treatments.organic,
+        },
+        prevention: Array.isArray(raw.prevention_tips) && raw.prevention_tips.length > 0
+          ? raw.prevention_tips
           : fallback.prevention,
       };
     }
@@ -124,8 +161,12 @@ function ResultPage({ result: routedResult }) {
     };
   };
 
-  const rawResult = location.state?.result || routedResult;
   const result = normalizeResult(rawResult);
+
+  // Show a subtle "translating" overlay while result is being re-translated
+  // (only shows for 1-2 seconds when user switches language)
+  const showTranslatingOverlay = isTranslatingResult;
+
   const treatments = {
     chemical: Array.isArray(result.treatments?.chemical) && result.treatments.chemical.length > 0
       ? result.treatments.chemical
@@ -159,6 +200,32 @@ function ResultPage({ result: routedResult }) {
     setImageLoadFailed(false);
   }, [imageUrl]);
 
+  // Restore from localStorage if page is refreshed and navigation state is lost
+  // This runs only on mount, so we intentionally omit the variables from dependencies
+  useEffect(() => {
+    if (!translatedResult && !navigationResult) {
+      // Try restoring from localStorage
+      try {
+        const stored = localStorage.getItem('leafai_raw_result');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          setNewResult(parsed); // This will also trigger translation
+        } else {
+          navigate('/scan'); // Nothing to show — go back to scan
+        }
+      } catch {
+        navigate('/scan');
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only on mount
+
+  // If no result at all, redirect to scan
+  if (!result) {
+    navigate('/scan');
+    return null;
+  }
+
   const getSeverityLabel = (severity) => {
     if (severity >= 80) return t('severity_high');
     if (severity >= 50) return t('severity_moderate');
@@ -179,6 +246,37 @@ function ResultPage({ result: routedResult }) {
 
   return (
     <div className="result-page">
+      {showTranslatingOverlay && (
+        <div style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 999,
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--accent-soft)',
+          borderRadius: '12px',
+          padding: '16px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+          pointerEvents: 'none',
+        }}>
+          <span style={{
+            width: '10px', height: '10px', borderRadius: '50%',
+            background: 'var(--accent-primary)',
+            display: 'inline-block',
+            animation: 'translatingPulse 0.8s ease-in-out infinite',
+          }} />
+          <span style={{
+            fontFamily: 'DM Sans', fontSize: '14px',
+            color: 'var(--text-secondary)',
+          }}>
+            {t('Translating results…')}
+          </span>
+        </div>
+      )}
       <Container>
         <div className="result-content-wrapper">
           {/* Main 2-Column Layout */}
@@ -209,7 +307,7 @@ function ResultPage({ result: routedResult }) {
               {isFallbackResult && (
                 <div className="result-auto-save visible" role="status" aria-live="polite">
                   <AlertTriangle size={14} aria-hidden="true" />
-                  <span>AI quota reached: showing temporary fallback result</span>
+                  <span>{t('AI quota reached: showing temporary fallback result')}</span>
                 </div>
               )}
 

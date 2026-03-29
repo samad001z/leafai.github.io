@@ -55,7 +55,7 @@ function LanguageSwitcher({ fixed = false, compact = false, className = '' }) {
     <div
       ref={ref}
       className={`language-switcher ${fixed ? 'language-switcher-fixed' : ''} ${className}`.trim()}
-      style={{ position: 'relative', zIndex: 1000 }}
+      style={{ position: 'relative', zIndex: 2000 }}
     >
       <button
         onClick={() => setOpen((o) => !o)}
@@ -100,9 +100,9 @@ function LanguageSwitcher({ fixed = false, compact = false, className = '' }) {
             maxHeight: '320px',
             overflowY: 'auto',
             padding: '6px',
-            scrollbarWidth: 'thin',
-            scrollbarColor: 'var(--accent-soft) transparent',
+            zIndex: 1002,
           }}
+          className="language-switcher-dropdown"
         >
           {LANGUAGE_OPTIONS.map((option) => (
             <button

@@ -6,7 +6,7 @@ import React, {
   useCallback,
   useRef,
 } from 'react';
-import { translateBatch, LANGUAGE_NAMES } from './translationService';
+import { translateBatch, translateResultData, LANGUAGE_NAMES } from './translationService';
 import translations from './translations';
 
 const LANGUAGE_STORAGE_KEY = 'leafai_lang';
@@ -29,6 +29,18 @@ export function LanguageProvider({ children }) {
   // translationMap: { [originalEnglish]: translatedString }
   const [translationMap, setTranslationMap] = useState({});
   const [isTranslating, setIsTranslating] = useState(false);
+
+  // Stores the original English result from Gemini (never mutated)
+  const [rawResult, setRawResult] = useState(() => {
+    try {
+      const stored = localStorage.getItem('leafai_raw_result');
+      return stored ? JSON.parse(stored) : null;
+    } catch { return null; }
+  });
+
+  // Stores the currently translated result (changes when lang changes)
+  const [translatedResult, setTranslatedResult] = useState(rawResult);
+  const [isTranslatingResult, setIsTranslatingResult] = useState(false);
 
   // Registry: all strings registered by components via t().
   const registryRef = useRef(new Set());
@@ -115,6 +127,49 @@ export function LanguageProvider({ children }) {
     }
   }, []);
 
+  /**
+   * Called after a new Gemini scan result arrives.
+   * Saves the raw English result and triggers translation for current lang.
+   */
+  const setNewResult = useCallback(async (englishResult) => {
+    // Always save the raw English version
+    setRawResult(englishResult);
+    try {
+      localStorage.setItem('leafai_raw_result', JSON.stringify(englishResult));
+    } catch (e) { /* storage full — ignore */ }
+
+    if (lang === 'en') {
+      setTranslatedResult(englishResult);
+      return;
+    }
+
+    // Translate immediately for current language
+    setIsTranslatingResult(true);
+    try {
+      const translated = await translateResultData(englishResult, lang);
+      setTranslatedResult(translated);
+    } catch (err) {
+      console.error('Initial result translation failed:', err);
+      setTranslatedResult(englishResult); // fallback to English
+    } finally {
+      setIsTranslatingResult(false);
+    }
+  }, [lang]);
+
+  // When language changes, re-translate the stored raw result
+  useEffect(() => {
+    if (!rawResult) return;
+    if (lang === 'en') {
+      setTranslatedResult(rawResult);
+      return;
+    }
+    setIsTranslatingResult(true);
+    translateResultData(rawResult, lang)
+      .then(translated => setTranslatedResult(translated))
+      .catch(() => setTranslatedResult(rawResult))
+      .finally(() => setIsTranslatingResult(false));
+  }, [lang, rawResult]); // Re-runs when lang or rawResult changes
+
   useEffect(() => {
     if (lang !== 'en') {
       triggerBatchTranslate(lang);
@@ -143,6 +198,10 @@ export function LanguageProvider({ children }) {
         t,
         isTranslating,
         languageNames: LANGUAGE_NAMES,
+        translatedResult,
+        setNewResult,
+        isTranslatingResult,
+        rawResult,
       }}
     >
       {isTranslating && (

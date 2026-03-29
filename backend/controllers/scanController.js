@@ -204,87 +204,111 @@ exports.analyzeImage = async (req, res) => {
       return res.status(200).json(resultPayload);
     };
 
-    const geminiResponse = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            role: 'user',
-            parts: [
-              { text: buildPrompt() },
-              {
-                inline_data: {
-                  mime_type: req.file.mimetype,
-                  data: imageBase64,
-                },
-              },
-            ],
-          },
-        ],
-        generationConfig: {
-          temperature: 0.1,
-          topP: 0.8,
-          maxOutputTokens: 2048,
-          thinkingConfig: {
-            thinkingBudget: 0,
-          },
-          responseMimeType: 'application/json',
-          responseSchema: {
-            type: 'OBJECT',
-            properties: {
-              plantIdentity: {
-                type: 'OBJECT',
-                properties: {
-                  name: { type: 'STRING' },
-                  scientificName: { type: 'STRING' },
-                  confidence: { type: 'NUMBER' },
-                },
-                required: ['name', 'scientificName', 'confidence'],
-              },
-              disease: {
-                type: 'OBJECT',
-                properties: {
-                  name: { type: 'STRING' },
-                  scientificName: { type: 'STRING' },
-                  confidence: { type: 'NUMBER' },
-                  description: { type: 'STRING' },
-                },
-                required: ['name', 'scientificName', 'confidence', 'description'],
-              },
-              treatments: {
-                type: 'OBJECT',
-                properties: {
-                  chemical: {
-                    type: 'ARRAY',
-                    items: { type: 'STRING' },
-                  },
-                  organic: {
-                    type: 'ARRAY',
-                    items: { type: 'STRING' },
-                  },
-                },
-                required: ['chemical', 'organic'],
-              },
-              prevention: {
-                type: 'ARRAY',
-                items: { type: 'STRING' },
-              },
-              recommendations: {
-                type: 'ARRAY',
-                items: { type: 'STRING' },
-              },
-              severity: { type: 'STRING' },
-              isHealthy: { type: 'BOOLEAN' },
-            },
-            required: ['plantIdentity', 'disease', 'treatments', 'prevention', 'recommendations', 'severity', 'isHealthy'],
-          },
+    // Retry logic with exponential backoff for 429 errors
+    let geminiResponse;
+    let retryCount = 0;
+    const maxRetries = 3;
+    
+    while (retryCount < maxRetries) {
+      geminiResponse = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      }),
-      signal: AbortSignal.timeout(30000),
-    });
+        body: JSON.stringify({
+          contents: [
+            {
+              role: 'user',
+              parts: [
+                { text: buildPrompt() },
+                {
+                  inline_data: {
+                    mime_type: req.file.mimetype,
+                    data: imageBase64,
+                  },
+                },
+              ],
+            },
+          ],
+          generationConfig: {
+            temperature: 0.1,
+            topP: 0.8,
+            maxOutputTokens: 2048,
+            thinkingConfig: {
+              thinkingBudget: 0,
+            },
+            responseMimeType: 'application/json',
+            responseSchema: {
+              type: 'OBJECT',
+              properties: {
+                plantIdentity: {
+                  type: 'OBJECT',
+                  properties: {
+                    name: { type: 'STRING' },
+                    scientificName: { type: 'STRING' },
+                    confidence: { type: 'NUMBER' },
+                  },
+                  required: ['name', 'scientificName', 'confidence'],
+                },
+                disease: {
+                  type: 'OBJECT',
+                  properties: {
+                    name: { type: 'STRING' },
+                    scientificName: { type: 'STRING' },
+                    confidence: { type: 'NUMBER' },
+                    description: { type: 'STRING' },
+                  },
+                  required: ['name', 'scientificName', 'confidence', 'description'],
+                },
+                treatments: {
+                  type: 'OBJECT',
+                  properties: {
+                    chemical: {
+                      type: 'ARRAY',
+                      items: { type: 'STRING' },
+                    },
+                    organic: {
+                      type: 'ARRAY',
+                      items: { type: 'STRING' },
+                    },
+                  },
+                  required: ['chemical', 'organic'],
+                },
+                prevention: {
+                  type: 'ARRAY',
+                  items: { type: 'STRING' },
+                },
+                recommendations: {
+                  type: 'ARRAY',
+                  items: { type: 'STRING' },
+                },
+                severity: { type: 'STRING' },
+                isHealthy: { type: 'BOOLEAN' },
+              },
+              required: ['plantIdentity', 'disease', 'treatments', 'prevention', 'recommendations', 'severity', 'isHealthy'],
+            },
+          },
+        }),
+        signal: AbortSignal.timeout(30000),
+      });
+
+      // If success, break retry loop
+      if (geminiResponse.ok) {
+        break;
+      }
+
+      // If 429 (quota exceeded), wait and retry
+      if (geminiResponse.status === 429 && retryCount < maxRetries - 1) {
+        const delay = Math.min(1000 * Math.pow(2, retryCount), 5000); // exponential backoff, max 5s
+        console.warn(`Gemini quota hit, retrying in ${delay}ms (attempt ${retryCount + 1}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        retryCount++;
+        continue;
+      }
+
+      // For other errors or final retry failure, break
+      break;
+    }
 
     if (!geminiResponse.ok) {
       const errorText = await geminiResponse.text();

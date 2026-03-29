@@ -18,7 +18,7 @@ import './ScannerPage.css';
 
 function ScannerPage({ onScanComplete }) {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, setNewResult } = useLanguage();
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
   const dropZoneRef = useRef(null);
@@ -302,9 +302,11 @@ function ScannerPage({ onScanComplete }) {
       clearInterval(progressInterval);
       setUploadProgress(100);
 
-      setTimeout(() => {
+      setTimeout(async () => {
         if (cancelAnalysisRef.current) return;
         onScanComplete(result);
+        // Register result with language context so it auto-translates
+        await setNewResult(result);
         navigate('/result', { state: { imageUrl: scannedImageUrl, result } });
       }, 500);
     } catch (err) {

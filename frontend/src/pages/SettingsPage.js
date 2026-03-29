@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { CheckCircle2, RotateCcw, Save } from 'lucide-react';
+import { CheckCircle2, Moon, RotateCcw, Save, Sun } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Header, Container } from '../components/Common';
 import { useLanguage } from '../i18n/LanguageContext';
+import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../auth/AuthContext';
 import {
   DEFAULT_USER_SETTINGS,
@@ -14,6 +15,7 @@ import './SettingsPage.css';
 
 function SettingsPage() {
   const { t } = useLanguage();
+  const { theme, toggleTheme } = useTheme();
   const { logout } = useAuth();
   const navigate = useNavigate();
   const [settings, setSettings] = useState(loadUserSettings());
@@ -101,6 +103,29 @@ function SettingsPage() {
                 />
                 <span>Auto-refresh history/alerts when opening page</span>
               </label>
+            </article>
+
+            <article className="settings-card">
+              <h3>Theme preference</h3>
+              <p>Choose between dark and light theme for the application.</p>
+              <div className="settings-theme-toggle">
+                <button
+                  type="button"
+                  className={`theme-option ${theme === 'dark' ? 'active' : ''}`}
+                  onClick={toggleTheme}
+                  title="Dark Theme"
+                >
+                  <Moon size={18} /> Dark
+                </button>
+                <button
+                  type="button"
+                  className={`theme-option ${theme === 'light' ? 'active' : ''}`}
+                  onClick={toggleTheme}
+                  title="Light Theme"
+                >
+                  <Sun size={18} /> Light
+                </button>
+              </div>
             </article>
           </div>
 

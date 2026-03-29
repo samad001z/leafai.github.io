@@ -304,6 +304,13 @@
     border-radius: 8px;
   }
 
+  .top-bar-language-switcher .language-switcher-dropdown {
+    position: absolute;
+    top: calc(100% + 4px) !important;
+    right: 0 !important;
+    z-index: 1203 !important;
+  }
+
   .top-bar-icon-btn {
     width: 56px;
     height: 56px;

@@ -170,8 +170,15 @@
 }
 
 @media (max-width: 639px) {
+  .alerts-page {
+    min-height: 100vh;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
   .alerts-content {
     padding: 1rem 0;
+    width: 100%;
   }
 
   .alerts-content h1 {
