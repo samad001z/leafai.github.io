@@ -16,7 +16,7 @@ import './ResultPage.css';
 function ResultPage({ result: routedResult }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { t, translatedResult, isTranslatingResult, setNewResult } = useLanguage();
+  const { t, translatedResult, setNewResult } = useLanguage();
   const [treatmentMode, setTreatmentMode] = useState('chemical');
   const [showSavedIndicator, setShowSavedIndicator] = useState(false);
   const [animatedConfidence, setAnimatedConfidence] = useState(0);
@@ -163,10 +163,6 @@ function ResultPage({ result: routedResult }) {
 
   const result = normalizeResult(rawResult);
 
-  // Show a subtle "translating" overlay while result is being re-translated
-  // (only shows for 1-2 seconds when user switches language)
-  const showTranslatingOverlay = isTranslatingResult;
-
   const treatments = {
     chemical: Array.isArray(result.treatments?.chemical) && result.treatments.chemical.length > 0
       ? result.treatments.chemical
@@ -246,37 +242,6 @@ function ResultPage({ result: routedResult }) {
 
   return (
     <div className="result-page">
-      {showTranslatingOverlay && (
-        <div style={{
-          position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          zIndex: 999,
-          background: 'var(--bg-surface)',
-          border: '1px solid var(--accent-soft)',
-          borderRadius: '12px',
-          padding: '16px 24px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-          pointerEvents: 'none',
-        }}>
-          <span style={{
-            width: '10px', height: '10px', borderRadius: '50%',
-            background: 'var(--accent-primary)',
-            display: 'inline-block',
-            animation: 'translatingPulse 0.8s ease-in-out infinite',
-          }} />
-          <span style={{
-            fontFamily: 'DM Sans', fontSize: '14px',
-            color: 'var(--text-secondary)',
-          }}>
-            {t('Translating results…')}
-          </span>
-        </div>
-      )}
       <Container>
         <div className="result-content-wrapper">
           {/* Main 2-Column Layout */}

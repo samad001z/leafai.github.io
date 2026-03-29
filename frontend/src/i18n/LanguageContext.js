@@ -112,12 +112,10 @@ export function LanguageProvider({ children }) {
     // Save language preference only for authenticated sessions.
     const token = localStorage.getItem('leafai_auth_token');
     if (token) {
-      try {
-        await authService.updatePreferences({ preferred_language: normalizedLang });
-      } catch (err) {
+      authService.updatePreferences({ preferred_language: normalizedLang }).catch((err) => {
         console.warn('Failed to save language preference to backend:', err);
         // Continue anyway - localStorage is enough as fallback
-      }
+      });
     }
 
     if (normalizedLang === 'en') {
@@ -155,17 +153,9 @@ export function LanguageProvider({ children }) {
       return;
     }
 
-    // Translate immediately for current language
-    setIsTranslatingResult(true);
-    try {
-      const translated = await translateResultData(englishResult, lang);
-      setTranslatedResult(translated);
-    } catch (err) {
-      console.error('Initial result translation failed:', err);
-      setTranslatedResult(englishResult); // fallback to English
-    } finally {
-      setIsTranslatingResult(false);
-    }
+    // Keep instant UI response; actual translation is handled once by the
+    // lang/rawResult effect below to avoid duplicate translation calls.
+    setTranslatedResult(englishResult);
   }, [lang]);
 
   // When language changes, re-translate the stored raw result
@@ -244,7 +234,7 @@ export function LanguageProvider({ children }) {
         rawResult,
       }}
     >
-      {isTranslating && !isTranslatingResult && (
+      {(isTranslating || isTranslatingResult) && (
         <div
           style={{
             position: 'fixed',
@@ -280,7 +270,7 @@ export function LanguageProvider({ children }) {
               color: 'var(--text-secondary)',
             }}
           >
-            Translating…
+            Translating...
           </span>
         </div>
       )}
