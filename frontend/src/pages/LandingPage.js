@@ -92,7 +92,7 @@ function LandingPage() {
           >
             <Leaf size={22} color="var(--accent-primary)" aria-hidden="true" />
             <span style={{ fontFamily: 'Syne', fontWeight: 700, color: 'var(--text-primary)', fontSize: '18px' }}>
-              LeafAI
+              FasalDoc
             </span>
           </Link>
 

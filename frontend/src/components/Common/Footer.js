@@ -13,7 +13,7 @@ function Footer({ t }) {
         <div className="footer-brand">
           <div className="footer-logo">
             <Leaf size={24} color="var(--accent-primary)" />
-            <span>LeafAI</span>
+            <span>FasalDoc</span>
           </div>
           <p className="footer-tagline">
             AI-powered plant disease detection for smarter farming
@@ -70,7 +70,7 @@ function Footer({ t }) {
 
       {/* Copyright */}
       <div className="footer-bottom">
-        <p>&copy; 2026 LeafAI · Precision Agriculture Technology</p>
+        <p>&copy; 2026 FasalDoc · Precision Agriculture Technology</p>
         <p className="footer-made">Made with care for sustainable farming</p>
       </div>
     </footer>

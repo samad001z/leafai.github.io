@@ -23,7 +23,7 @@ const Header = ({ showNav = true }) => {
         <div className="header-brand" onClick={handleLogoClick}>
           <div className="header-logo">
             <Leaf size={20} className="logo-icon" aria-hidden="true" />
-            <span className="logo-text">LeafAI</span>
+            <span className="logo-text">FasalDoc</span>
           </div>
           <span className="logo-tagline">{t('header_tagline')}</span>
         </div>
