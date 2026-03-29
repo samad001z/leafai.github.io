@@ -10,7 +10,6 @@ import AlertsPage from './pages/AlertsPage';
 import SettingsPage from './pages/SettingsPage';
 import ProfilePage from './pages/ProfilePage';
 import Navigation from './components/Navigation/Navigation';
-import { LanguageSwitcher } from './components/Common';
 import { useAuth } from './auth/AuthContext';
 import './styles/App.css';
 
@@ -43,7 +42,6 @@ function AppContent() {
   return (
     <div className="app">
       {showNavigation && <Navigation />}
-      {showNavigation && <LanguageSwitcher fixed />}
       <main className={`app-main ${showNavigation ? 'app-main-shell' : 'app-main-public'}`}>
         <div className={showNavigation ? 'app-content-max' : 'app-content-public'}>
           <Routes>

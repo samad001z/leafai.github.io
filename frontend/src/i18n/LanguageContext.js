@@ -7,6 +7,7 @@ import React, {
   useRef,
 } from 'react';
 import { translateBatch, translateResultData, LANGUAGE_NAMES } from './translationService';
+import { authService } from '../services/api';
 import translations from './translations';
 
 const LANGUAGE_STORAGE_KEY = 'leafai_lang';
@@ -108,6 +109,17 @@ export function LanguageProvider({ children }) {
     setLangState(normalizedLang);
     localStorage.setItem(LANGUAGE_STORAGE_KEY, normalizedLang);
 
+    // Save language preference only for authenticated sessions.
+    const token = localStorage.getItem('leafai_auth_token');
+    if (token) {
+      try {
+        await authService.updatePreferences({ preferred_language: normalizedLang });
+      } catch (err) {
+        console.warn('Failed to save language preference to backend:', err);
+        // Continue anyway - localStorage is enough as fallback
+      }
+    }
+
     if (normalizedLang === 'en') {
       setTranslationMap({});
       return;
@@ -176,6 +188,34 @@ export function LanguageProvider({ children }) {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Load language preference from backend when app initializes
+  useEffect(() => {
+    const loadUserLanguagePreference = async () => {
+      try {
+        const response = await authService.getMe();
+        if (response?.user?.preferred_language) {
+          const userLang = normalizeLang(response.user.preferred_language);
+          if (userLang !== lang) {
+            setLangState(userLang);
+            localStorage.setItem(LANGUAGE_STORAGE_KEY, userLang);
+            if (userLang !== 'en') {
+              triggerBatchTranslate(userLang);
+            }
+          }
+        }
+      } catch (err) {
+        // User not authenticated or API error - use localStorage value
+        // This is expected when user is not logged in
+      }
+    };
+
+    // Only try to load if user is likely authenticated (token exists)
+    const token = localStorage.getItem('leafai_auth_token');
+    if (token) {
+      loadUserLanguagePreference();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     const rtlLangs = ['ar', 'ur'];
     document.documentElement.dir = rtlLangs.includes(lang) ? 'rtl' : 'ltr';
@@ -204,7 +244,7 @@ export function LanguageProvider({ children }) {
         rawResult,
       }}
     >
-      {isTranslating && (
+      {isTranslating && !isTranslatingResult && (
         <div
           style={{
             position: 'fixed',

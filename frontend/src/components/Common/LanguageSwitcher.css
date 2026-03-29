@@ -1,6 +1,7 @@
 .language-switcher {
   position: relative;
   z-index: 2000;
+  display: inline-flex;
 }
 
 .language-switcher-fixed {
@@ -27,8 +28,10 @@
   font-family: var(--font-sans);
   font-size: 13px;
   cursor: pointer;
-  z-index: 1002;
+  z-index: 2001;
   position: relative;
+  transition: border-color 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
 }
 
 .language-switcher-trigger:hover {
@@ -48,12 +51,40 @@
 .language-switcher-chevron {
   color: var(--text-muted);
   transition: transform 0.2s ease;
+  flex-shrink: 0;
 }
 
 .language-switcher-chevron.open {
   transform: rotate(180deg);
 }
 
+/* Portal container - ensures highest stacking context */
+#language-dropdown-portal {
+  pointer-events: none;
+}
+
+/* Portal-based dropdown - rendered to body */
+.language-switcher-portal-dropdown {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  /* Prevent any stacking context issues */
+  box-sizing: border-box;
+  /* Force gpu acceleration */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  /* Ensure dropdown doesn't create new stacking context  */
+  filter: none;
+  clip-path: none;
+  contain: none;
+}
+
+.language-switcher-portal-dropdown::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* Legacy dropdown styles (kept for compatibility) */
 .language-switcher-dropdown {
   position: absolute;
   top: calc(100% + 8px);
@@ -62,11 +93,34 @@
   border: 1px solid var(--accent-soft);
   border-radius: 10px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  min-width: 160px;
+  min-width: 180px;
+  max-width: 220px;
   padding: 6px;
-  z-index: 2205;
-  max-height: 320px;
+  z-index: 2100;
+  max-height: calc(100vh - 120px);
   overflow-y: auto;
+  pointer-events: auto;
+  visibility: visible;
+  animation: language-switcher-slide-down 0.2s ease;
+}
+
+@keyframes language-switcher-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* For fixed positioned language switcher (desktop) - keep as absolute with calc */
+.language-switcher-fixed .language-switcher-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  max-width: min(220px, calc(100vw - 40px));
 }
 
 /* Hide scrollbar completely across all browsers */
@@ -95,6 +149,8 @@
   font-size: 14px;
   text-align: left;
   cursor: pointer;
+  transition: background-color 0.15s ease;
+  white-space: nowrap;
 }
 
 .language-switcher-option:hover {
@@ -106,20 +162,38 @@
   color: var(--text-primary);
 }
 
+/* Responsive for smaller desktop widths */
+@media (max-width: 1023px) {
+  .language-switcher-fixed .language-switcher-dropdown {
+    max-width: calc(100vw - 30px);
+  }
+}
+
 @media (max-width: 639px) {
   .language-switcher {
     z-index: 1202;
   }
 
   .language-switcher-fixed {
-    display: none;
+    position: fixed;
+    top: auto;
+    bottom: 70px;
+    right: 12px;
+    left: auto;
+    z-index: 1201;
+  }
+
+  .language-switcher-fixed .language-switcher-dropdown {
+    max-width: calc(100vw - 24px);
   }
 
   .language-switcher-trigger {
     padding: 7px 10px;
+    font-size: 12px;
   }
 
   .language-switcher-dropdown {
     z-index: 1203;
+    max-width: calc(100vw - 20px);
   }
 }

@@ -1,0 +1,416 @@
+/* How It Works - Clean Layout */
+
+.how-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 80px 24px;
+  background: var(--bg-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.how-wrapper::before {
+  content: '';
+  position: absolute;
+  top: -120px;
+  left: -180px;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(61, 214, 140, 0.1) 0%, rgba(61, 214, 140, 0) 72%);
+  pointer-events: none;
+}
+
+.how-wrapper::after {
+  content: '';
+  position: absolute;
+  bottom: -150px;
+  right: -130px;
+  width: 380px;
+  height: 380px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(61, 214, 140, 0.08) 0%, rgba(61, 214, 140, 0) 74%);
+  pointer-events: none;
+}
+
+.how-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+  gap: 80px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Phone Section */
+.how-phone {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  width: min(260px, 100%);
+  aspect-ratio: 1 / 2;
+  height: auto;
+  perspective: 1200px;
+  transform-style: flat;
+}
+
+.how-phone-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  perspective: 1200px;
+  filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.28));
+  width: 100%;
+}
+
+.how-phone-img {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 30px;
+  object-fit: cover;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+  transition: opacity 0.45s ease, transform 0.45s ease;
+  opacity: 0;
+  transform: scale(0.98);
+  z-index: 1;
+  backface-visibility: hidden;
+  filter: none;
+}
+
+.how-phone-img.active {
+  opacity: 1;
+  transform: scale(1);
+  z-index: 3;
+  box-shadow: 0 22px 52px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(61, 214, 140, 0.2);
+}
+
+.how-phone-img.prev {
+  opacity: 0;
+  transform: translateY(8px) scale(0.98);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.how-phone-img.next {
+  opacity: 0;
+  transform: translateY(8px) scale(0.98);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.how-phone-img.hidden {
+  opacity: 0;
+  transform: translateY(8px) scale(0.98);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Content Section */
+.how-content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.how-header {
+  margin-bottom: 0;
+}
+
+.how-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+  margin: 0 0 12px;
+  color: var(--text-primary);
+}
+
+.how-subtitle {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Steps */
+.how-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.how-step {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 8px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  text-align: left;
+  font-family: var(--font-sans);
+  opacity: 0.5;
+}
+
+.how-step:hover {
+  opacity: 0.88;
+  border-color: rgba(61, 214, 140, 0.25);
+  background: rgba(61, 214, 140, 0.05);
+  transform: translateX(4px);
+}
+
+.how-step.active {
+  opacity: 1;
+  border-color: rgba(61, 214, 140, 0.36);
+  background: rgba(61, 214, 140, 0.08);
+  transform: translateX(8px);
+}
+
+/* Step Number */
+.how-step-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 50%;
+  border: 2px solid rgba(61, 214, 140, 0.3);
+  background: transparent;
+  transition: all 0.2s ease;
+}
+
+.how-step-number span {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(61, 214, 140, 0.5);
+}
+
+.how-step.active .how-step-number {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 12px rgba(61, 214, 140, 0.3), 0 0 24px rgba(61, 214, 140, 0.2);
+}
+
+.how-step.active .how-step-number span {
+  color: #ffffff;
+}
+
+/* Step Content */
+.how-step-content {
+  flex: 1;
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.how-step-title {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(61, 214, 140, 0.6);
+  transition: color 0.2s ease;
+}
+
+.how-step.active .how-step-title {
+  color: var(--accent-primary);
+}
+
+.how-step-description {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.4;
+  color: rgba(61, 214, 140, 0.4);
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.how-step.active .how-step-description {
+  color: var(--text-secondary);
+}
+
+/* CTA Button */
+.how-cta {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.how-button {
+  padding: 12px 28px;
+  background: linear-gradient(135deg, var(--accent-primary), rgba(61, 214, 140, 0.9));
+  border: none;
+  border-radius: 8px;
+  color: #0d1f1a;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(61, 214, 140, 0.2);
+}
+
+.how-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(61, 214, 140, 0.3), 0 0 24px rgba(61, 214, 140, 0.26);
+}
+
+.how-button:active {
+  transform: translateY(0);
+}
+
+@keyframes howPhoneFloat {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(0px);
+  }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .how-wrapper {
+    padding: 60px 20px;
+  }
+
+  .how-grid {
+    gap: 60px;
+  }
+
+  .how-title {
+    font-size: 24px;
+  }
+
+  .how-phone {
+    width: min(240px, 100%);
+  }
+}
+
+@media (max-width: 768px) {
+  .how-wrapper {
+    padding: 50px 16px;
+  }
+
+  .how-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .how-content {
+    order: 2;
+    gap: 24px;
+  }
+
+  .how-phone-wrapper {
+    order: 1;
+    margin-bottom: 4px;
+  }
+
+  .how-phone {
+    width: min(230px, 80vw);
+  }
+
+  .how-title {
+    font-size: 22px;
+  }
+
+  .how-subtitle {
+    font-size: 14px;
+  }
+
+  .how-steps {
+    gap: 16px;
+  }
+
+  .how-step {
+    padding: 0;
+    gap: 12px;
+  }
+
+  .how-step-number {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+  }
+
+  .how-step-number span {
+    font-size: 12px;
+  }
+
+  .how-step-title {
+    font-size: 14px;
+  }
+
+  .how-step-description {
+    font-size: 12px;
+  }
+
+  .how-button {
+    padding: 10px 24px;
+    font-size: 13px;
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .how-wrapper {
+    padding: 40px 12px;
+  }
+
+  .how-grid {
+    gap: 24px;
+  }
+
+  .how-phone {
+    width: min(210px, 78vw);
+  }
+
+  .how-title {
+    font-size: 20px;
+  }
+
+  .how-subtitle {
+    font-size: 13px;
+  }
+
+  .how-steps {
+    gap: 14px;
+  }
+
+  .how-step-number {
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+  }
+
+  .how-step-number span {
+    font-size: 11px;
+  }
+
+  .how-step-title {
+    font-size: 13px;
+  }
+
+  .how-step-description {
+    font-size: 11px;
+  }
+
+  .how-button {
+    padding: 8px 20px;
+    font-size: 12px;
+  }
+
+  .how-wrapper::before,
+  .how-wrapper::after {
+    opacity: 0.45;
+  }
+}

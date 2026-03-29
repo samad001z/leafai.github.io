@@ -7,6 +7,7 @@ import Badge from './Badge';
 import Header from './Header';
 import Container from './Container';
 import LanguageSwitcher from './LanguageSwitcher';
+import Footer from './Footer';
 
 export {
   LanguageSelector,
@@ -18,4 +19,5 @@ export {
   Header,
   Container,
   LanguageSwitcher,
+  Footer,
 };

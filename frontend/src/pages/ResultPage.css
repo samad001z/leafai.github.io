@@ -1,5 +1,4 @@
 .result-page {
-  min-height: 100vh;
   background: linear-gradient(135deg, #f8f3e8 0%, #e8f5e9 100%);
   padding-bottom: 60px;
 }
@@ -704,5 +703,101 @@
 
   .result-page .left-panel-actions {
     gap: 8px;
+  }
+}
+
+/* Responsive refactor: mobile-first result layout */
+.result-content-wrapper {
+  padding: 16px 0;
+}
+
+.result-grid {
+  grid-template-columns: 1fr;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.result-image-section {
+  position: static;
+}
+
+.preview-image,
+.result-page .result-image-fallback {
+  height: 220px;
+}
+
+.result-card {
+  border-radius: 16px;
+}
+
+.card-header {
+  padding: 14px 16px;
+  gap: 10px;
+}
+
+.card-title {
+  font-size: 1rem;
+}
+
+.card-body {
+  padding: 16px;
+}
+
+.treatment-toggle {
+  width: 100%;
+}
+
+.toggle-btn {
+  flex: 1;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .result-content-wrapper {
+    padding: 24px 0;
+  }
+
+  .result-grid {
+    gap: 32px;
+    margin-bottom: 32px;
+  }
+
+  .card-header {
+    padding: 20px 24px;
+    gap: 16px;
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+  }
+
+  .card-body {
+    padding: 24px;
+  }
+
+  .treatment-toggle {
+    width: auto;
+  }
+
+  .toggle-btn {
+    flex: initial;
+  }
+}
+
+@media (min-width: 1024px) {
+  .result-grid {
+    grid-template-columns: 1fr 1.2fr;
+    gap: 40px;
+    margin-bottom: 40px;
+  }
+
+  .result-image-section {
+    position: sticky;
+    top: 100px;
+  }
+
+  .preview-image,
+  .result-page .result-image-fallback {
+    height: 350px;
   }
 }

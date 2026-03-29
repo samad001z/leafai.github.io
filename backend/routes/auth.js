@@ -18,4 +18,7 @@ router.post('/verify-otp', authController.verifyOtp);
 // Current authenticated user
 router.get('/me', requireAuth, authController.me);
 
+// Update user preferences (language, etc)
+router.put('/preferences', requireAuth, authController.updatePreferences);
+
 module.exports = router;

@@ -12,6 +12,11 @@ const userSchema = new mongoose.Schema({
     unique: true,
     trim: true,
   },
+  preferred_language: {
+    type: String,
+    default: 'en',
+    enum: ['en', 'hi', 'te', 'ta', 'bn', 'mr', 'gu', 'kn', 'ml', 'pa', 'ur', 'es', 'fr', 'de', 'ar', 'zh', 'ja', 'pt', 'ru', 'ko'],
+  },
   createdAt: {
     type: Date,
     default: Date.now,

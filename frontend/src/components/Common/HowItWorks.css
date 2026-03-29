@@ -1,0 +1,562 @@
+/* How It Works Section */
+.how-it-works-section {
+  width: 100%;
+  background: var(--bg-base);
+  position: relative;
+  overflow: hidden;
+  /* Main padding - centered with proper spacing */
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 80px 24px;
+}
+
+/* Main container - width already handled by section */
+.how-it-works-container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+
+/* Wrapper grid - proper 2-column layout with centered alignment */
+.how-it-works-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+  width: 100%;
+}
+
+/* ===================== PHONE MOCKUP ===================== */
+
+.phone-mockup-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 0;
+  position: relative;
+  width: 100%;
+}
+
+/* Remove background overlay card - keep minimal */
+.phone-mockup-background {
+  display: none;
+}
+
+@keyframes sofaGlow {
+  0%, 100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Main phone mockup - centered */
+.phone-mockup {
+  position: relative;
+  z-index: 2;
+  perspective: 1000px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.phone-frame {
+  position: relative;
+  width: 260px;
+  height: 520px;
+  border-radius: 30px;
+  overflow: hidden;
+  background: #0a0a0a;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4),
+              0 0 40px rgba(61, 214, 140, 0.12);
+  border: 8px solid #1a1a1a;
+  flex-shrink: 0;
+}
+
+/* Phone notch */
+.phone-notch {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 150px;
+  height: 24px;
+  background: #000;
+  border-radius: 0 0 20px 20px;
+  z-index: 10;
+}
+
+/* Phone screen */
+.phone-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-base);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: fadeInScale 0.5s ease-out;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Phone indicator (home button) */
+.phone-indicator {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 4px;
+  background: #333;
+  border-radius: 2px;
+  z-index: 10;
+}
+
+/* Step indicator dots */
+.step-dots {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(61, 214, 140, 0.2);
+  transition: all 0.3s ease;
+  cursor: pointer;
+
+  &.active {
+    width: 24px;
+    border-radius: 4px;
+    background: var(--accent-primary);
+  }
+}
+
+/* ===================== CONTENT SECTION ===================== */
+
+.how-it-works-content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+}
+
+/* Header */
+.how-it-works-header {
+  margin-bottom: 0;
+}
+
+.how-it-works-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+  margin: 0 0 12px;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
+
+.how-it-works-subtitle {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin: 0;
+  font-weight: 400;
+}
+
+/* Steps container */
+.how-it-works-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Individual step button */
+.how-it-works-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 12px 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  font-family: var(--font-sans);
+  position: relative;
+  opacity: 0.5;
+
+  &::before {
+    display: none;
+  }
+
+  &:hover {
+    opacity: 0.7;
+  }
+
+  &.is-active {
+    opacity: 1;
+    background: transparent;
+    border: none;
+
+    &::before {
+      display: none;
+    }
+  }
+}
+
+/* Step number circle */
+.step-number-circle {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: transparent;
+  border: 2px solid rgba(61, 214, 140, 0.3);
+  transition: all 0.2s ease;
+
+  .how-it-works-step.is-active & {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 12px rgba(61, 214, 140, 0.3);
+    transform: scale(1);
+  }
+}
+
+.step-number-text {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(61, 214, 140, 0.5);
+  display: block;
+  opacity: 1;
+  transition: all 0.2s ease;
+
+  .how-it-works-step.is-active & {
+    color: #fff;
+    opacity: 1;
+  }
+}
+
+/* Step content */
+.step-content {
+  flex: 1;
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.step-title {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(61, 214, 140, 0.6);
+  transition: color 0.2s ease;
+  letter-spacing: -0.2px;
+
+  .how-it-works-step.is-active & {
+    color: var(--accent-primary);
+  }
+}
+
+.step-description {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.4;
+  color: rgba(61, 214, 140, 0.4);
+  transition: color 0.2s ease;
+  font-weight: 400;
+
+  .how-it-works-step.is-active & {
+    color: var(--text-secondary);
+  }
+}
+
+/* CTA Section - aligned with steps */
+.how-it-works-cta {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.how-it-works-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 28px;
+  background: linear-gradient(135deg, var(--accent-primary), rgba(61, 214, 140, 0.9));
+  border: none;
+  border-radius: 8px;
+  color: #0d1f1a;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(61, 214, 140, 0.2);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(61, 214, 140, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+/* ===================== RESPONSIVE DESIGN ===================== */
+
+@media (max-width: 1200px) {
+  .how-it-works-section {
+    max-width: 1000px;
+  }
+
+  .how-it-works-wrapper {
+    gap: 60px;
+  }
+
+  .how-it-works-title {
+    font-size: 26px;
+  }
+
+  .phone-frame {
+    width: 240px;
+    height: 480px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .how-it-works-section {
+    padding: 60px 20px;
+    max-width: 900px;
+  }
+
+  .how-it-works-wrapper {
+    gap: 50px;
+  }
+
+  .how-it-works-title {
+    font-size: 24px;
+  }
+
+  .how-it-works-content {
+    gap: 24px;
+  }
+
+  .phone-frame {
+    width: 220px;
+    height: 440px;
+  }
+}
+
+@media (max-width: 768px) {
+  .how-it-works-section {
+    padding: 50px 16px;
+    max-width: 100%;
+  }
+
+  .how-it-works-wrapper {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .phone-mockup-wrapper {
+    order: 1;
+  }
+
+  .how-it-works-content {
+    order: 2;
+    gap: 20px;
+  }
+
+  .how-it-works-title {
+    font-size: 22px;
+    margin-bottom: 8px;
+  }
+
+  .how-it-works-subtitle {
+    font-size: 14px;
+  }
+
+  .how-it-works-steps {
+    gap: 16px;
+  }
+
+  .how-it-works-step {
+    padding: 10px 0;
+    gap: 12px;
+  }
+
+  .step-number-circle {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+  }
+
+  .step-number-text {
+    font-size: 12px;
+  }
+
+  .step-title {
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+
+  .step-description {
+    font-size: 12px;
+  }
+
+  .phone-frame {
+    width: 200px;
+    height: 400px;
+  }
+
+  .phone-notch {
+    width: 120px;
+    height: 20px;
+  }
+
+  .how-it-works-button {
+    padding: 10px 24px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 640px) {
+  .how-it-works-section {
+    padding: 40px 12px;
+    max-width: 100%;
+  }
+
+  .how-it-works-wrapper {
+    gap: 32px;
+  }
+
+  .how-it-works-title {
+    font-size: 20px;
+    margin-bottom: 6px;
+  }
+
+  .how-it-works-subtitle {
+    font-size: 13px;
+  }
+
+  .how-it-works-steps {
+    gap: 14px;
+  }
+
+  .how-it-works-step {
+    padding: 8px 0;
+    gap: 10px;
+  }
+
+  .step-number-circle {
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+  }
+
+  .step-number-text {
+    font-size: 11px;
+  }
+
+  .step-title {
+    font-size: 13px;
+    margin-bottom: 2px;
+  }
+
+  .step-description {
+    font-size: 11px;
+  }
+
+  .phone-frame {
+    width: 180px;
+    height: 360px;
+    border-width: 5px;
+    border-radius: 24px;
+  }
+
+  .phone-notch {
+    width: 100px;
+    height: 18px;
+  }
+
+  .how-it-works-button {
+    padding: 8px 20px;
+    font-size: 12px;
+    width: auto;
+  }
+
+  .how-it-works-cta {
+    margin-top: 16px;
+  }
+}
+
+/* ===================== ANIMATIONS ===================== */
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.how-it-works-step {
+  animation: slideIn 0.5s ease-out;
+
+  &:nth-child(1) {
+    animation-delay: 0.1s;
+  }
+
+  &:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+
+  &:nth-child(3) {
+    animation-delay: 0.2s;
+  }
+
+  &:nth-child(4) {
+    animation-delay: 0.25s;
+  }
+
+  &:nth-child(5) {
+    animation-delay: 0.3s;
+  }
+}

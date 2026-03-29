@@ -12,7 +12,8 @@ import {
   Timer,
   Zap,
 } from 'lucide-react';
-import { Button, Container, LanguageSwitcher } from '../components/Common';
+import { Button, Container, LanguageSwitcher, Footer } from '../components/Common';
+import HowItWorksNew from '../components/Common/HowItWorksNew';
 import { useLanguage } from '../i18n/LanguageContext';
 import './LandingPage.css';
 
@@ -203,49 +204,7 @@ function LandingPage() {
           </section>
 
           {/* How It Works */}
-          <section className="how-it-works-section">
-            <h2 className="section-title">{t('how_title')}</h2>
-            <div className="steps-container">
-              {[
-                {
-                  num: 1,
-                  title: t('step1_title'),
-                  description: t('step1_body'),
-                },
-                {
-                  num: 2,
-                  title: t('step2_title'),
-                  description: t('step2_body'),
-                },
-                {
-                  num: 3,
-                  title: t('step3_title'),
-                  description: t('step3_body'),
-                },
-                {
-                  num: 4,
-                  title: t('step4_title'),
-                  description: t('step4_body'),
-                },
-              ].map((step, idx) => (
-                <div
-                  key={idx}
-                  className={`step-item ${idx === 0 ? 'is-first' : ''} ${idx === 3 ? 'is-last' : ''}`}
-                >
-                  <div className="step-marker" aria-hidden="true">
-                    <span className="step-line step-line-left" />
-                    <div className="step-number">{step.num}</div>
-                    <span className="step-line step-line-right" />
-                    <span className="step-line-vertical" />
-                  </div>
-                  <div className="step-copy">
-                    <h4 className="step-title">{step.title}</h4>
-                    <p className="step-description">{step.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
+          <HowItWorksNew t={t} />
 
           {/* CTA Section */}
           <section className="landing-cta">
@@ -262,11 +221,7 @@ function LandingPage() {
       </main>
 
       {/* Footer */}
-      <footer className="landing-footer">
-        <Container>
-          <p>{t('footer_text')}</p>
-        </Container>
-      </footer>
+      <Footer t={t} />
     </div>
   );
 }

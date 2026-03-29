@@ -138,6 +138,11 @@ export const authService = {
     const response = await api.get('/auth/me');
     return response.data;
   },
+
+  updatePreferences: async ({ preferred_language }) => {
+    const response = await api.put('/auth/preferences', { preferred_language });
+    return response.data;
+  },
 };
 
 export const authStorage = {

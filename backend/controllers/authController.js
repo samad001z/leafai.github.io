@@ -397,10 +397,83 @@ exports.me = async (req, res) => {
         id: req.user?.id,
         name: req.user?.name || 'Farmer',
         phone: req.user?.phone,
+        preferred_language: req.user?.preferred_language || 'en',
       },
     });
   } catch (error) {
     console.error('Get Me Error:', error);
     res.status(500).json({ error: 'Failed to fetch profile' });
+  }
+};
+
+exports.updatePreferences = async (req, res) => {
+  try {
+    const { preferred_language } = req.body;
+    const userId = req.user?.id;
+    const userPhone = req.user?.phone;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    if (!preferred_language) {
+      return res.status(400).json({ error: 'preferred_language is required' });
+    }
+
+    // Validate language code
+    const validLanguages = ['en', 'hi', 'te', 'ta', 'bn', 'mr', 'gu', 'kn', 'ml', 'pa', 'ur', 'es', 'fr', 'de', 'ar', 'zh', 'ja', 'pt', 'ru', 'ko'];
+    if (!validLanguages.includes(preferred_language)) {
+      return res.status(400).json({ error: 'Invalid language code' });
+    }
+
+    // Update in MongoDB if available.
+    // JWT `sub` may be a Supabase UUID, which is not a valid Mongo ObjectId.
+    // In that case, try a phone-based update instead of throwing a CastError.
+    if (isMongoReady()) {
+      const User = require('../models/User');
+
+      let user = null;
+      if (mongoose.isValidObjectId(userId)) {
+        user = await User.findByIdAndUpdate(
+          userId,
+          { preferred_language },
+          { new: true }
+        );
+      }
+
+      if (!user && userPhone) {
+        user = await User.findOneAndUpdate(
+          { phone: userPhone },
+          { preferred_language },
+          { new: true }
+        );
+      }
+
+      if (user) {
+        return res.json({
+          success: true,
+          message: 'Preferences updated successfully',
+          user: {
+            id: user._id,
+            name: user.name,
+            phone: user.phone,
+            preferred_language: user.preferred_language,
+          },
+        });
+      }
+    }
+
+    // Fallback: return success even if MongoDB is not available
+    res.json({
+      success: true,
+      message: 'Preferences updated successfully',
+      user: {
+        id: userId,
+        preferred_language,
+      },
+    });
+  } catch (error) {
+    console.error('Update Preferences Error:', error);
+    res.status(500).json({ error: 'Failed to update preferences' });
   }
 };
